@@ -3,8 +3,4 @@ import "./style.css";
 import "./reset.css";
 import { App } from "./app";
 
-const init = () => {
-	render(App(), document.body);
-};
-
-init();
+render(<App />, document.body);

@@ -10,9 +10,9 @@ export const renderTree = (
 	tree: TreeNode
 ) => {
 	// Show tracks
-	ctx.fillStyle = "#ff0000";
+	ctx.fillStyle = "#333";
 	for (let i = TRACK_HEIGHT; i < height; i += TRACK_HEIGHT) {
-		ctx.fillRect(0, i, width, 2.0);
+		ctx.fillRect(0, i, width, 1.0);
 	}
 	// Set up canvas
 	ctx.fillStyle = "#000";
@@ -20,8 +20,8 @@ export const renderTree = (
 	ctx.lineWidth = 2.0;
 	ctx.font = "1.5rem serif";
 	// Layout
+	if (!tree) return;
 	let treeWidth = layoutTreeNode(ctx, tree);
-	console.log(`treeWidth: ${treeWidth}`);
 	// Drawing
 	drawTreeNode(ctx, tree, treeWidth / 2.0, 0);
 };
