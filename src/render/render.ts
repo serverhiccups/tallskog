@@ -1,7 +1,29 @@
-import { TreeNode, isLeaf } from "../tree/treeNode";
+import { TreeNode } from "../tree/treeNode";
+import { NativeLayout } from "./naiveLayout";
 
-const TRACK_HEIGHT: number = 72.0;
-const CHILD_PADDING: number = 16.0;
+export const TRACK_HEIGHT: number = 72.0;
+export const CHILD_PADDING: number = 16.0;
+
+export interface Layout {
+	width: number;
+	height: number;
+	entryX: number;
+	entryY: number;
+	root: LayoutNode;
+}
+
+export interface LayoutAlgorithm {
+	doLayout(ctx: CanvasRenderingContext2D, tree: TreeNode): Layout;
+}
+
+export interface LayoutNode {
+	label: string | undefined;
+	relativeX: number;
+	relativeY: number;
+	width: number;
+	height: number;
+	children: LayoutNode[];
+}
 
 export const renderTree = (
 	ctx: CanvasRenderingContext2D,
@@ -21,61 +43,11 @@ export const renderTree = (
 	ctx.font = "1.5rem serif";
 	// Layout
 	if (!tree) return;
-	let treeWidth = layoutTreeNode(ctx, tree);
+	const algo = new NativeLayout();
+	let l = algo.doLayout(ctx, tree);
 	// Drawing
-	drawTreeNode(ctx, tree, treeWidth / 2.0, 0);
-};
-
-/**
- * @returns The combined width of the child nodes
- */
-const layoutTreeNode = (
-	ctx: CanvasRenderingContext2D,
-	node: TreeNode
-): number => {
-	if (isLeaf(node)) return calculateLabelWidth(ctx, node);
-	return Math.max(
-		calculateLabelWidth(ctx, node),
-		layoutChildren(ctx, node.children)
-	);
-};
-
-const layoutChildren = (
-	ctx: CanvasRenderingContext2D,
-	children: TreeNode[]
-): number => {
-	return Math.max(
-		0,
-		children.map((n) => layoutTreeNode(ctx, n)).reduce((a, b) => a + b, 0) +
-			(children.length - 1) * CHILD_PADDING
-	);
-};
-
-const drawTreeNode = (
-	ctx: CanvasRenderingContext2D,
-	node: TreeNode,
-	x: number,
-	rail: number
-): void => {
-	// centerLine(ctx, x);
-	ctx.fillText(node.label, x, railToY(rail));
-	let childrenWidth = layoutChildren(ctx, node.children);
-	let edge = x - childrenWidth / 2.0;
-	let i = 0;
-	for (let child of node.children) {
-		const childWidth = layoutTreeNode(ctx, child);
-		const childCenterX = edge + childWidth / 2.0;
-		lineBetween(
-			ctx,
-			x,
-			railToY(rail) + 8.0,
-			childCenterX,
-			railToY(rail + 1) - 24.0
-		);
-		drawTreeNode(ctx, child, childCenterX, rail + 1);
-		edge += childWidth + CHILD_PADDING;
-		i++;
-	}
+	// drawTreeNode(ctx, tree, treeWidth / 2.0, 0);
+	renderLayout(ctx, l.root, l.entryX, l.entryY);
 };
 
 const railToY = (rail: number): number => {
@@ -102,9 +74,28 @@ const lineBetween = (
 	ctx.stroke();
 };
 
-const calculateLabelWidth = (
+export const calculateLabelWidth = (
 	ctx: CanvasRenderingContext2D,
 	node: TreeNode
 ): number => {
 	return ctx.measureText(node.label).width + 8.0;
+};
+
+const renderLayout = (
+	ctx: CanvasRenderingContext2D,
+	root: LayoutNode,
+	x: number,
+	y: number
+): void => {
+	ctx.fillText(root.label ? root.label : "∅", x, y);
+	for (let child of root.children) {
+		lineBetween(
+			ctx,
+			x,
+			y + 8.0,
+			x + child.relativeX,
+			y + child.relativeY - 24.0
+		);
+		renderLayout(ctx, child, x + child.relativeX, y + child.relativeY);
+	}
 };

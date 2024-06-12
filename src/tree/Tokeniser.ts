@@ -29,7 +29,7 @@ export class Tokeniser {
 		if (match == null) return null;
 
 		this.cursor += match[0].length;
-		if (match.groups?.[1]) return match.groups?.[1];
+		if (match[1]) return match[1];
 		return match[0];
 	}
 
