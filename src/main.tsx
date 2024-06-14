@@ -1,5 +1,5 @@
 import { render } from "preact";
-import "./style.css";
+import "./style.scss";
 import "./reset.css";
 import { App } from "./app";
 

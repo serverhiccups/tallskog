@@ -1,5 +1,5 @@
 import { useRef, useEffect } from "preact/hooks";
-import styles from "./canvas.module.css";
+import styles from "./canvas.module.scss";
 import { FunctionalComponent } from "preact";
 
 interface ResizableCanvasProps {
