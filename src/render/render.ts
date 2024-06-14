@@ -1,9 +1,12 @@
 import { TreeNode } from "../tree/treeNode";
-import { NativeLayout } from "./naiveLayout";
 
 export const TRACK_HEIGHT: number = 72.0;
 export const CHILD_PADDING: number = 16.0;
 export const LABEL_PADDING: number = 8.0;
+
+export type RenderingContext2D =
+	| CanvasRenderingContext2D
+	| OffscreenCanvasRenderingContext2D;
 
 export interface Layout {
 	width: number;
@@ -26,29 +29,9 @@ export interface LayoutNode {
 	children: LayoutNode[];
 }
 
-export const renderTree = (
-	ctx: CanvasRenderingContext2D,
-	width: number,
-	height: number,
-	tree: TreeNode
-) => {
-	// Show tracks
-	ctx.fillStyle = "#333";
-	for (let i = TRACK_HEIGHT; i < height; i += TRACK_HEIGHT) {
-		ctx.fillRect(0, i, width, 1.0);
-	}
-	// Set up canvas
-	ctx.fillStyle = "#000";
-	ctx.textAlign = "center";
-	ctx.lineWidth = 2.0;
-	ctx.font = "1.5rem serif";
-	// Layout
-	if (!tree) return;
-	const algo = new NativeLayout();
-	let l = algo.doLayout(ctx, tree);
-	console.dir(l);
+export const renderLayout = (ctx: CanvasRenderingContext2D, layout: Layout) => {
 	// Drawing
-	renderLayout(ctx, l.root, l.entryX, l.entryY);
+	renderLayoutNode(ctx, layout.root, layout.entryX, layout.entryY);
 };
 
 const railToY = (rail: number): number => {
@@ -75,10 +58,7 @@ const lineBetween = (
 	ctx.stroke();
 };
 
-export const calculateTextBounds = (
-	ctx: CanvasRenderingContext2D,
-	text: string
-) => {
+export const calculateTextBounds = (ctx: RenderingContext2D, text: string) => {
 	let metrics = ctx.measureText(text ? text : "∅");
 	return {
 		width: metrics.width + LABEL_PADDING,
@@ -86,7 +66,7 @@ export const calculateTextBounds = (
 	};
 };
 
-const renderLayout = (
+const renderLayoutNode = (
 	ctx: CanvasRenderingContext2D,
 	root: LayoutNode,
 	x: number,
@@ -103,6 +83,6 @@ const renderLayout = (
 	ctx.fillText(root.label ? root.label : "∅", x, y);
 	for (let child of root.children) {
 		lineBetween(ctx, x, y + 8.0, x + child.x, y + child.y - 24.0);
-		renderLayout(ctx, child, x + child.x, y + child.y);
+		renderLayoutNode(ctx, child, x + child.x, y + child.y);
 	}
 };

@@ -6,10 +6,11 @@ import {
 	calculateTextBounds,
 	TRACK_HEIGHT,
 	CHILD_PADDING,
+	RenderingContext2D,
 } from "./render";
 
-export class NativeLayout implements LayoutAlgorithm {
-	doLayout(ctx: CanvasRenderingContext2D, tree: TreeNode): Layout {
+export class NaiveLayout implements LayoutAlgorithm {
+	doLayout(ctx: RenderingContext2D, tree: TreeNode): Layout {
 		const lt = layout(ctx, tree, 0, 0);
 		const width = calculateTreeNodeWidth(ctx, tree);
 		return {
@@ -23,7 +24,7 @@ export class NativeLayout implements LayoutAlgorithm {
 }
 
 const layout = (
-	ctx: CanvasRenderingContext2D,
+	ctx: RenderingContext2D,
 	root: TreeNode,
 	x: number,
 	y: number
@@ -52,7 +53,7 @@ const layout = (
  * @returns The combined width of the child nodes
  */
 const calculateTreeNodeWidth = (
-	ctx: CanvasRenderingContext2D,
+	ctx: RenderingContext2D,
 	node: TreeNode
 ): number => {
 	if (isLeaf(node)) return calculateTextBounds(ctx, node.label).width;
@@ -63,7 +64,7 @@ const calculateTreeNodeWidth = (
 };
 
 const calculateChildrenWidth = (
-	ctx: CanvasRenderingContext2D,
+	ctx: RenderingContext2D,
 	children: TreeNode[]
 ): number => {
 	return Math.max(
