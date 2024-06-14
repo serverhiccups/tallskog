@@ -3,7 +3,7 @@ import {
 	LayoutAlgorithm,
 	Layout,
 	LayoutNode,
-	calculateLabelWidth,
+	calculateTextBounds,
 	TRACK_HEIGHT,
 	CHILD_PADDING,
 } from "./render";
@@ -28,15 +28,16 @@ const layout = (
 	x: number,
 	y: number
 ): LayoutNode => {
-	let childrenWidth = calculateChildrenWidth(ctx, root.children);
+	let labelMetrics = calculateTextBounds(ctx, root.label);
 	let l: LayoutNode = {
 		label: root.label,
-		relativeX: x,
-		relativeY: y,
-		width: childrenWidth,
-		height: 24.0, // TODO: Calculate
+		x: x,
+		y: y,
+		width: labelMetrics.width,
+		height: labelMetrics.height,
 		children: [],
 	};
+	let childrenWidth = calculateChildrenWidth(ctx, root.children);
 	let edge = -childrenWidth / 2.0;
 	for (let child of root.children) {
 		const childWidth = calculateTreeNodeWidth(ctx, child);
@@ -54,9 +55,9 @@ const calculateTreeNodeWidth = (
 	ctx: CanvasRenderingContext2D,
 	node: TreeNode
 ): number => {
-	if (isLeaf(node)) return calculateLabelWidth(ctx, node);
+	if (isLeaf(node)) return calculateTextBounds(ctx, node.label).width;
 	return Math.max(
-		calculateLabelWidth(ctx, node),
+		calculateTextBounds(ctx, node.label).width,
 		calculateChildrenWidth(ctx, node.children)
 	);
 };

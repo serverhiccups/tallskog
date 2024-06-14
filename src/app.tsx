@@ -4,7 +4,9 @@ import { useMemo, useState } from "preact/hooks";
 import { parse } from "./tree/parser";
 
 export const App = () => {
-	const [diagramCode, setDiagramCode] = useState<string>("");
+	const [diagramCode, setDiagramCode] = useState<string>(
+		'["Hello" ["A"]["B"]]'
+	);
 	const handleDiagramCodeChange = (event: InputEvent) => {
 		if (event.target instanceof HTMLTextAreaElement) {
 			setDiagramCode(event.target.value);
