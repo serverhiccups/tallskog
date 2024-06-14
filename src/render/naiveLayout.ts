@@ -5,7 +5,12 @@ import {
 	CHILD_PADDING,
 	RenderingContext2D,
 } from "./render";
-import { Layout, LayoutAlgorithm, LayoutNode } from "./layout";
+import {
+	Layout,
+	LayoutAlgorithm,
+	LayoutNode,
+	buildLayoutNodeQueryStructure,
+} from "./layout";
 
 export class NaiveLayout implements LayoutAlgorithm {
 	doLayout(ctx: RenderingContext2D, tree: TreeNode): Layout {
@@ -17,6 +22,7 @@ export class NaiveLayout implements LayoutAlgorithm {
 			entryX: width / 2.0,
 			entryY: TRACK_HEIGHT,
 			root: lt,
+			query: buildLayoutNodeQueryStructure(lt),
 		};
 	}
 }
