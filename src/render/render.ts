@@ -1,4 +1,4 @@
-import { TreeNode } from "../tree/treeNode";
+import { Layout, LayoutNode } from "./layout";
 
 export const TRACK_HEIGHT: number = 72.0;
 export const CHILD_PADDING: number = 16.0;
@@ -7,27 +7,6 @@ export const LABEL_PADDING: number = 8.0;
 export type RenderingContext2D =
 	| CanvasRenderingContext2D
 	| OffscreenCanvasRenderingContext2D;
-
-export interface Layout {
-	width: number;
-	height: number;
-	entryX: number;
-	entryY: number;
-	root: LayoutNode;
-}
-
-export interface LayoutAlgorithm {
-	doLayout(ctx: CanvasRenderingContext2D, tree: TreeNode): Layout;
-}
-
-export interface LayoutNode {
-	label: string | undefined;
-	x: number;
-	y: number;
-	width: number;
-	height: number;
-	children: LayoutNode[];
-}
 
 export const renderLayout = (ctx: CanvasRenderingContext2D, layout: Layout) => {
 	// Drawing

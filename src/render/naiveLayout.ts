@@ -1,17 +1,15 @@
 import { TreeNode, isLeaf } from "../tree/treeNode";
 import {
-	LayoutAlgorithm,
-	Layout,
-	LayoutNode,
 	calculateTextBounds,
 	TRACK_HEIGHT,
 	CHILD_PADDING,
 	RenderingContext2D,
 } from "./render";
+import { Layout, LayoutAlgorithm, LayoutNode } from "./layout";
 
 export class NaiveLayout implements LayoutAlgorithm {
 	doLayout(ctx: RenderingContext2D, tree: TreeNode): Layout {
-		const lt = layout(ctx, tree, 0, 0);
+		const lt = layout(ctx, tree, 0, 0, 0, 0);
 		const width = calculateTreeNodeWidth(ctx, tree);
 		return {
 			width: width,
@@ -27,13 +25,17 @@ const layout = (
 	ctx: RenderingContext2D,
 	root: TreeNode,
 	x: number,
-	y: number
+	y: number,
+	parentAbX: number,
+	parentAbY: number
 ): LayoutNode => {
 	let labelMetrics = calculateTextBounds(ctx, root.label);
 	let l: LayoutNode = {
 		label: root.label,
 		x: x,
 		y: y,
+		absoluteX: parentAbX,
+		absoluteY: parentAbY,
 		width: labelMetrics.width,
 		height: labelMetrics.height,
 		children: [],
@@ -43,7 +45,16 @@ const layout = (
 	for (let child of root.children) {
 		const childWidth = calculateTreeNodeWidth(ctx, child);
 		const childCenterX = edge + childWidth / 2.0;
-		l.children.push(layout(ctx, child, childCenterX, TRACK_HEIGHT));
+		l.children.push(
+			layout(
+				ctx,
+				child,
+				childCenterX,
+				TRACK_HEIGHT,
+				parentAbX + childCenterX,
+				parentAbY + TRACK_HEIGHT
+			)
+		);
 		edge += childWidth + CHILD_PADDING;
 	}
 	return l;

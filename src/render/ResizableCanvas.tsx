@@ -4,10 +4,12 @@ import { FunctionalComponent } from "preact";
 
 interface ResizableCanvasProps {
 	draw: (ctx: CanvasRenderingContext2D) => void;
+	onClick?: (event: MouseEvent) => void;
 }
 
 export const ResizableCanvas: FunctionalComponent<ResizableCanvasProps> = ({
 	draw,
+	onClick,
 }) => {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -36,5 +38,7 @@ export const ResizableCanvas: FunctionalComponent<ResizableCanvasProps> = ({
 		};
 	}, [draw]);
 
-	return <canvas class={styles.canvas} ref={canvasRef}></canvas>;
+	return (
+		<canvas class={styles.canvas} ref={canvasRef} onClick={onClick}></canvas>
+	);
 };

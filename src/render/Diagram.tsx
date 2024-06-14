@@ -1,7 +1,8 @@
 import { FunctionalComponent } from "preact";
-import { TreeNode } from "../tree/treeNode";
+import { TreeNode, isLeaf } from "../tree/treeNode";
 import { ResizableCanvas } from "./ResizableCanvas";
-import { Layout, RenderingContext2D, renderLayout } from "./render";
+import { RenderingContext2D, renderLayout } from "./render";
+import { Layout, getLayoutNodeAt } from "./layout";
 import { NaiveLayout } from "./naiveLayout";
 import { useMemo, useState } from "preact/hooks";
 
@@ -61,5 +62,11 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({ trees }) => {
 			renderLayout(ctx, la);
 		}
 	};
-	return <ResizableCanvas draw={draw}></ResizableCanvas>;
+
+	const onClick = (event: MouseEvent) => {
+		console.log(`x: ${event.offsetX}, y: ${event.offsetY}`);
+		if (!state) return;
+		console.log(getLayoutNodeAt(state.layouts, event.offsetX, event.offsetY));
+	};
+	return <ResizableCanvas onClick={onClick} draw={draw}></ResizableCanvas>;
 };
