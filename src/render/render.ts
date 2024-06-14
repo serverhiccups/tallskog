@@ -79,7 +79,7 @@ export const calculateTextBounds = (
 	ctx: CanvasRenderingContext2D,
 	text: string
 ) => {
-	let metrics = ctx.measureText(text);
+	let metrics = ctx.measureText(text ? text : "∅");
 	return {
 		width: metrics.width + LABEL_PADDING,
 		height: metrics.emHeightDescent + metrics.emHeightDescent + LABEL_PADDING,
