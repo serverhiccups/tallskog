@@ -3,7 +3,7 @@ import { TreeNode } from "../tree/treeNode";
 import { ResizableCanvas } from "./ResizableCanvas";
 import { Layout, RenderingContext2D, renderLayout } from "./render";
 import { NaiveLayout } from "./naiveLayout";
-import { useMemo } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 
 const setCanvasProperties = (ctx: RenderingContext2D): void => {
 	ctx.fillStyle = "#000";
@@ -12,11 +12,15 @@ const setCanvasProperties = (ctx: RenderingContext2D): void => {
 	ctx.font = "24px serif"; // Must specify in px because rem is broken in OffscreenCanvas
 };
 
-interface DiagramProps {
-	tree: TreeNode;
+interface DiagramState {
+	layouts: Layout[];
 }
 
-export const Diagram: FunctionalComponent<DiagramProps> = ({ tree }) => {
+interface DiagramProps {
+	trees: TreeNode[];
+}
+
+export const Diagram: FunctionalComponent<DiagramProps> = ({ trees }) => {
 	const offscreenCtx: OffscreenCanvasRenderingContext2D | undefined =
 		useMemo(() => {
 			const offscreenCanvas = new OffscreenCanvas(0, 0);
@@ -24,15 +28,27 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({ tree }) => {
 			if (ctx == null) return;
 			return ctx;
 		}, []);
-	const layout: Layout | undefined = useMemo(() => {
+	const state: DiagramState | undefined = useMemo(() => {
 		if (!offscreenCtx) return;
 		setCanvasProperties(offscreenCtx);
 		const algo = new NaiveLayout();
-		return algo.doLayout(offscreenCtx, tree);
-	}, [tree]);
+		let s: DiagramState = {
+			layouts: [],
+		};
+		let edge = 24.0;
+		for (const tree of trees) {
+			const layout = algo.doLayout(offscreenCtx, tree);
+			s.layouts.push({
+				...layout,
+				entryX: edge + layout.entryX,
+			});
+			edge += layout.width + 24.0;
+		}
+		return s;
+	}, [trees]);
 
 	const draw = (ctx: CanvasRenderingContext2D) => {
-		if (!tree) return;
+		if (!state) return;
 		// Show tracks
 		// ctx.fillStyle = "#333";
 		// for (let i = TRACK_HEIGHT; i < height; i += TRACK_HEIGHT) {
@@ -40,8 +56,10 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({ tree }) => {
 		// }
 		// Set up canvas
 		setCanvasProperties(ctx);
-		if (!layout) return;
-		renderLayout(ctx, layout);
+		if (!state) return;
+		for (const la of state.layouts) {
+			renderLayout(ctx, la);
+		}
 	};
 	return <ResizableCanvas draw={draw}></ResizableCanvas>;
 };

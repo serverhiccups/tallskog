@@ -13,9 +13,9 @@ export const App = () => {
 		}
 	};
 
-	const tree = useMemo(() => {
+	const trees = useMemo(() => {
 		const newTree = parse(diagramCode);
-		return newTree[0];
+		return newTree;
 	}, [diagramCode]);
 
 	return (
@@ -30,7 +30,7 @@ export const App = () => {
 					></textarea>
 				</div>
 				<div id="output">
-					<Diagram tree={tree}></Diagram>
+					<Diagram trees={trees}></Diagram>
 				</div>
 			</div>
 		</div>
