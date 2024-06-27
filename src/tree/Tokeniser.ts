@@ -16,14 +16,17 @@ export class Tokeniser {
 		return this.input.slice(this.cursor);
 	}
 
-	public next(pattern: RegExp): string | null {
-		if (this.remainingInput() == "") return null;
-
-		// Skip whitespace characters
+	public skipWhitespace(): void {
 		const whitespaceMatch = /^\s+/.exec(this.remainingInput());
 		if (whitespaceMatch !== null) {
 			this.cursor += whitespaceMatch[0].length;
 		}
+	}
+
+	public next(pattern: RegExp): string | null {
+		if (this.remainingInput() == "") return null;
+
+		this.skipWhitespace();
 
 		const match = pattern.exec(this.remainingInput());
 		if (match == null) return null;
@@ -36,11 +39,7 @@ export class Tokeniser {
 	public has(pattern: RegExp): boolean {
 		if (this.remainingInput() == "") return false;
 
-		// Skip whitespace characters
-		const whitespaceMatch = /^\s+/.exec(this.remainingInput());
-		if (whitespaceMatch !== null) {
-			this.cursor += whitespaceMatch[0].length;
-		}
+		this.skipWhitespace();
 
 		const match = pattern.exec(this.remainingInput());
 		if (match == null || match.index !== 0) return false;

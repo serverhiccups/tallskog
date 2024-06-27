@@ -3,6 +3,7 @@ import styles from "./app.module.scss";
 import { useMemo, useReducer, useState } from "preact/hooks";
 import { parse } from "./tree/parser";
 import { dynamicForestReducer } from "./tree/dynamicTree";
+import { TextEditor } from "./editor/TextEditor";
 
 export const App = () => {
 	const startingText = '["Hello" ["A"]["B"]]';
@@ -10,11 +11,11 @@ export const App = () => {
 	const [state, dispatch] = useReducer(dynamicForestReducer, {
 		roots: parse(startingText),
 		diagramText: startingText,
+		textError: false,
 	});
 
 	const handleDiagramCodeChange = (event: InputEvent) => {
 		if (event.target instanceof HTMLTextAreaElement) {
-			dispatch({ kind: "updateDiagramText", text: event.target.value });
 		}
 	};
 
@@ -23,11 +24,13 @@ export const App = () => {
 			<nav class={styles.nav}>Tallskog</nav>
 			<div id="content" class={styles.content}>
 				<div id="ast">
-					<textarea
-						id="ast"
+					<TextEditor
 						value={state.diagramText}
-						onInput={handleDiagramCodeChange}
-					></textarea>
+						onChange={(v: string) => {
+							dispatch({ kind: "updateDiagramText", text: v });
+						}}
+						isError={state.textError}
+					/>
 				</div>
 				<div id="output">
 					<Diagram trees={state.roots} dispatch={dispatch}></Diagram>

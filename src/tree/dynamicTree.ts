@@ -1,8 +1,10 @@
 import { TreeNode } from "./treeNode";
+import { parse, unparse } from "./parser";
 
 export interface DynamicForest {
 	roots: TreeNode[];
 	diagramText: string;
+	textError: boolean;
 }
 
 export type DynamicForestAction =
@@ -19,13 +21,26 @@ export const dynamicForestReducer = (
 ): DynamicForest => {
 	switch (action.kind) {
 		case "updateDiagramText":
-			return { ...state, diagramText: action.text };
+			try {
+				const res = parse(action.text);
+				return {
+					...state,
+					diagramText: action.text,
+					roots: res,
+					textError: false,
+				};
+			} catch (e) {
+				return { ...state, diagramText: action.text, textError: true };
+			}
 		case "deleteNode":
+			const newRoots = doOnRoot(state.roots, action.rootId, (r) =>
+				deleteNode(r, action.nodeId)
+			);
 			return {
 				...state,
-				roots: doOnRoot(state.roots, action.rootId, (r) =>
-					deleteNode(r, action.nodeId)
-				),
+				diagramText: unparse(newRoots),
+				roots: newRoots,
+				textError: false,
 			};
 	}
 };

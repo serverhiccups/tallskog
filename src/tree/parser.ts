@@ -3,12 +3,11 @@ import { TreeNode, createTreeNode } from "./treeNode";
 export const parse = (text: string): TreeNode[] => {
 	const tokeniser = new Tokeniser(text);
 	let trees: TreeNode[] = [];
-	try {
-		// return [parseTree(tokeniser)];
-		while (tokeniser.has(PATTERNS.OPEN_SQUARE)) {
-			trees.push(parseTree(tokeniser, undefined));
-		}
-	} catch (e) {}
+	while (tokeniser.has(PATTERNS.OPEN_SQUARE)) {
+		trees.push(parseTree(tokeniser, undefined));
+	}
+	tokeniser.skipWhitespace();
+	if (tokeniser.hasNext()) throw new Error("trailing input");
 	return trees;
 };
 
@@ -42,4 +41,15 @@ const parseTree = (tok: Tokeniser, parent: TreeNode | undefined): TreeNode => {
 	}
 	expect(tok, PATTERNS.CLOSE_SQUARE);
 	return me;
+};
+
+export const unparse = (forest: TreeNode[]): string => {
+	return forest.map(unparseNode).join("\n");
+};
+
+const unparseNode = (node: TreeNode): string => {
+	if (node.label == "") return "[]";
+	return `["${node.label}"${node.children.length > 0 ? " " : ""}${node.children
+		.map(unparseNode)
+		.join("")}]`;
 };
