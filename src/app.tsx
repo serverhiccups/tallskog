@@ -5,23 +5,18 @@ import { parse } from "./tree/parser";
 import { dynamicForestReducer } from "./tree/dynamicTree";
 
 export const App = () => {
-	const [diagramCode, setDiagramCode] = useState<string>(
-		'["Hello" ["A"]["B"]]'
-	);
-	const handleDiagramCodeChange = (event: InputEvent) => {
-		if (event.target instanceof HTMLTextAreaElement) {
-			setDiagramCode(event.target.value);
-		}
-	};
-
-	const trees = useMemo(() => {
-		const newTree = parse(diagramCode);
-		return newTree;
-	}, [diagramCode]);
+	const startingText = '["Hello" ["A"]["B"]]';
 
 	const [state, dispatch] = useReducer(dynamicForestReducer, {
-		roots: parse(diagramCode),
+		roots: parse(startingText),
+		diagramText: startingText,
 	});
+
+	const handleDiagramCodeChange = (event: InputEvent) => {
+		if (event.target instanceof HTMLTextAreaElement) {
+			dispatch({ kind: "updateDiagramText", text: event.target.value });
+		}
+	};
 
 	return (
 		<div id="app" class={styles.app}>
@@ -30,7 +25,7 @@ export const App = () => {
 				<div id="ast">
 					<textarea
 						id="ast"
-						value={diagramCode}
+						value={state.diagramText}
 						onInput={handleDiagramCodeChange}
 					></textarea>
 				</div>

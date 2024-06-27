@@ -2,19 +2,24 @@ import { TreeNode } from "./treeNode";
 
 export interface DynamicForest {
 	roots: TreeNode[];
+	diagramText: string;
 }
 
-export type DynamicForestAction = {
-	kind: "deleteNode";
-	rootId: string;
-	nodeId: string;
-};
+export type DynamicForestAction =
+	| {
+			kind: "deleteNode";
+			rootId: string;
+			nodeId: string;
+	  }
+	| { kind: "updateDiagramText"; text: string };
 
 export const dynamicForestReducer = (
 	state: DynamicForest,
 	action: DynamicForestAction
 ): DynamicForest => {
 	switch (action.kind) {
+		case "updateDiagramText":
+			return { ...state, diagramText: action.text };
 		case "deleteNode":
 			return {
 				...state,
@@ -30,15 +35,12 @@ const doOnRoot = (
 	rootId: string,
 	action: (root: TreeNode) => TreeNode | undefined
 ): TreeNode[] => {
-	console.log("doing");
-	console.dir(roots);
 	const rIdx = roots.findIndex((r) => r.id == rootId);
 	if (rIdx == -1) return roots;
-	console.log("found root");
 	const res = action(roots[rIdx]);
 	if (res === undefined) {
 		roots.splice(rIdx, 1);
-		return roots;
+		return [...roots];
 	}
 	roots[rIdx] = res;
 	return [...roots];
