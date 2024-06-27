@@ -15,6 +15,8 @@ export interface LayoutAlgorithm {
 
 export interface LayoutNode {
 	label: string | undefined;
+	treeNodeId: string;
+	rootTreeNodeId: string;
 	x: number;
 	y: number;
 	absoluteX: number;

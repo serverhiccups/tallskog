@@ -14,7 +14,7 @@ import {
 
 export class NaiveLayout implements LayoutAlgorithm {
 	doLayout(ctx: RenderingContext2D, tree: TreeNode): Layout {
-		const lt = layout(ctx, tree, 0, 0, 0, 0);
+		const lt = layout(ctx, tree, tree.id, 0, 0, 0, 0);
 		const width = calculateTreeNodeWidth(ctx, tree);
 		return {
 			width: width,
@@ -29,15 +29,18 @@ export class NaiveLayout implements LayoutAlgorithm {
 
 const layout = (
 	ctx: RenderingContext2D,
-	root: TreeNode,
+	current: TreeNode,
+	rootTreeNodeId: string,
 	x: number,
 	y: number,
 	parentAbX: number,
 	parentAbY: number
 ): LayoutNode => {
-	let labelMetrics = calculateTextBounds(ctx, root.label);
+	let labelMetrics = calculateTextBounds(ctx, current.label);
 	let l: LayoutNode = {
-		label: root.label,
+		label: current.label,
+		treeNodeId: current.id,
+		rootTreeNodeId: rootTreeNodeId,
 		x: x,
 		y: y,
 		absoluteX: parentAbX,
@@ -46,15 +49,16 @@ const layout = (
 		height: labelMetrics.height,
 		children: [],
 	};
-	let childrenWidth = calculateChildrenWidth(ctx, root.children);
+	let childrenWidth = calculateChildrenWidth(ctx, current.children);
 	let edge = -childrenWidth / 2.0;
-	for (let child of root.children) {
+	for (let child of current.children) {
 		const childWidth = calculateTreeNodeWidth(ctx, child);
 		const childCenterX = edge + childWidth / 2.0;
 		l.children.push(
 			layout(
 				ctx,
 				child,
+				rootTreeNodeId,
 				childCenterX,
 				TRACK_HEIGHT,
 				parentAbX + childCenterX,
@@ -82,7 +86,7 @@ const calculateTreeNodeWidth = (
 
 const calculateChildrenWidth = (
 	ctx: RenderingContext2D,
-	children: TreeNode[]
+	children: readonly TreeNode[]
 ): number => {
 	return Math.max(
 		0,

@@ -6,7 +6,7 @@ export const parse = (text: string): TreeNode[] => {
 	try {
 		// return [parseTree(tokeniser)];
 		while (tokeniser.has(PATTERNS.OPEN_SQUARE)) {
-			trees.push(parseTree(tokeniser));
+			trees.push(parseTree(tokeniser, undefined));
 		}
 	} catch (e) {}
 	return trees;
@@ -28,17 +28,18 @@ const require = (tok: Tokeniser, pattern: RegExp): string => {
 	return next;
 };
 
-const parseTree = (tok: Tokeniser): TreeNode => {
+const parseTree = (tok: Tokeniser, parent: TreeNode | undefined): TreeNode => {
 	expect(tok, PATTERNS.OPEN_SQUARE);
 	if (tok.has(PATTERNS.CLOSE_SQUARE)) {
 		tok.next(PATTERNS.CLOSE_SQUARE);
-		return createTreeNode("", []);
+		return createTreeNode("", parent, []);
 	}
 	let label = require(tok, PATTERNS.LABEL_TEXT);
 	let children: TreeNode[] = [];
+	let me = createTreeNode(label, parent, children);
 	while (tok.has(PATTERNS.OPEN_SQUARE)) {
-		children.push(parseTree(tok));
+		children.push(parseTree(tok, me));
 	}
 	expect(tok, PATTERNS.CLOSE_SQUARE);
-	return createTreeNode(label, children);
+	return me;
 };

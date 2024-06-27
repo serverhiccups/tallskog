@@ -4,7 +4,8 @@ import { ResizableCanvas } from "./ResizableCanvas";
 import { RenderingContext2D, renderLayout } from "./render";
 import { Layout, getLayoutNodeAt } from "./layout";
 import { NaiveLayout } from "./naiveLayout";
-import { useMemo, useState } from "preact/hooks";
+import { Dispatch, useMemo, useState } from "preact/hooks";
+import { DynamicForestAction } from "../tree/dynamicTree";
 
 const setCanvasProperties = (ctx: RenderingContext2D): void => {
 	ctx.fillStyle = "#000";
@@ -18,10 +19,14 @@ interface DiagramState {
 }
 
 interface DiagramProps {
-	trees: TreeNode[];
+	trees: (TreeNode | undefined)[];
+	dispatch: Dispatch<DynamicForestAction>;
 }
 
-export const Diagram: FunctionalComponent<DiagramProps> = ({ trees }) => {
+export const Diagram: FunctionalComponent<DiagramProps> = ({
+	trees,
+	dispatch,
+}) => {
 	const offscreenCtx: OffscreenCanvasRenderingContext2D | undefined =
 		useMemo(() => {
 			const offscreenCanvas = new OffscreenCanvas(0, 0);
@@ -38,6 +43,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({ trees }) => {
 		};
 		let edge = 24.0;
 		for (const tree of trees) {
+			if (tree === undefined) return; // !
 			const layout = algo.doLayout(offscreenCtx, tree);
 			s.layouts.push({
 				...layout,
@@ -66,7 +72,14 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({ trees }) => {
 	const onClick = (event: MouseEvent) => {
 		console.log(`x: ${event.offsetX}, y: ${event.offsetY}`);
 		if (!state) return;
-		console.log(getLayoutNodeAt(state.layouts, event.offsetX, event.offsetY));
+		const n = getLayoutNodeAt(state.layouts, event.offsetX, event.offsetY);
+		console.log(n);
+		if (n === undefined) return;
+		dispatch({
+			kind: "deleteNode",
+			rootId: n.rootTreeNodeId,
+			nodeId: n.treeNodeId,
+		});
 	};
 	return <ResizableCanvas onClick={onClick} draw={draw}></ResizableCanvas>;
 };
