@@ -70,8 +70,6 @@ export const dynamicForestReducer = (
 		}
 		case "selectNode": {
 			const selection = findNodeById(state.roots, action.nodeId);
-			// console.log("selection is:");
-			// console.dir(selection);
 			return {
 				...state,
 				selectedNode: selection,
@@ -89,20 +87,6 @@ export const buildInitialState = (tree: string): DynamicForest => {
 		diagramText: tree,
 		textError: false,
 		selectedNode: undefined,
-		// get selectedNode() {
-		// 	if (this.selectedNodeId === undefined) return undefined;
-		// 	if (
-		// 		this.cachedSelectedNode !== undefined &&
-		// 		this.cachedSelectedNode.id == this.selectedNodeId
-		// 	)
-		// 		return this.cachedSelectedNode;
-		// 	for (const root of this.roots) {
-		// 		const res = findNodeById(root, this.selectedNodeId);
-		// 		if (res == null) continue;
-		// 		this.cachedSelectedNode = res;
-		// 		return res;
-		// 	}
-		// },
 	};
 };
 

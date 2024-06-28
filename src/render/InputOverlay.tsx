@@ -32,7 +32,6 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 			class={styles.overlay}
 			style={positionOverlayStyle}
 			value={text}
-			// onInput={handleOverlayInput}
 			{...rest}
 		/>
 	);

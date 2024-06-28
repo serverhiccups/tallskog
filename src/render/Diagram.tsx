@@ -74,21 +74,15 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 	};
 
 	const onClick = (event: MouseEvent) => {
-		console.log(`x: ${event.offsetX}, y: ${event.offsetY}`);
 		if (!state) return;
+		// Find the layout node we clicked on
 		const n = getLayoutNodeAt(state.layouts, event.offsetX, event.offsetY);
 		if (n === undefined) {
+			// Deselect if we clicked on nothing
 			dispatch({ kind: "deselectNode" });
 			return;
 		}
 		dispatch({ kind: "selectNode", nodeId: n.node.treeNodeId });
-
-		// setOverlayText(n.node.label ? n.node.label : "");
-		// dispatch({
-		// 	kind: "deleteNode",
-		// 	rootId: n.rootTreeNodeId,
-		// 	nodeId: n.treeNodeId,
-		// });
 	};
 
 	const [selectedLayoutNode, selectedLayoutNodeLayout] = useLayoutNodeHandle(
@@ -96,14 +90,12 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		selectedNode?.id
 	);
 	// coordinated in canvas space
-	// metrics TODO: calculate based on actual element
 	const handleOverlayInput: JSX.InputEventHandler<HTMLInputElement> = (
 		e
 	): void => {
 		if (e.target instanceof HTMLInputElement) {
 			if (selectedNode === undefined || selectedLayoutNode === undefined)
 				return;
-			// setOverlayText(e.target.value);
 			dispatch({
 				kind: "updateLabelText",
 				rootId: selectedLayoutNode.rootTreeNodeId,

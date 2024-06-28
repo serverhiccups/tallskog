@@ -3,6 +3,7 @@ import styles from "./texteditor.module.scss";
 
 interface TextEditorProps {
 	value: string;
+	/** Receives the new value */
 	onChange: (value: string) => any;
 	isError: boolean;
 }
