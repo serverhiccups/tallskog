@@ -5,6 +5,7 @@ export interface DynamicForest {
 	roots: TreeNode[];
 	diagramText: string;
 	textError: boolean;
+	selectedNode: TreeNode | undefined;
 }
 
 export type DynamicForestAction =
@@ -13,14 +14,17 @@ export type DynamicForestAction =
 			rootId: string;
 			nodeId: string;
 	  }
-	| { kind: "updateDiagramText"; text: string };
+	| { kind: "updateDiagramText"; text: string }
+	| { kind: "updateLabelText"; rootId: string; nodeId: string; text: string }
+	| { kind: "selectNode"; nodeId: string }
+	| { kind: "deselectNode" };
 
 export const dynamicForestReducer = (
 	state: DynamicForest,
 	action: DynamicForestAction
 ): DynamicForest => {
 	switch (action.kind) {
-		case "updateDiagramText":
+		case "updateDiagramText": {
 			try {
 				const res = parse(action.text);
 				return {
@@ -28,11 +32,13 @@ export const dynamicForestReducer = (
 					diagramText: action.text,
 					roots: res,
 					textError: false,
+					selectedNode: undefined,
 				};
 			} catch (e) {
 				return { ...state, diagramText: action.text, textError: true };
 			}
-		case "deleteNode":
+		}
+		case "deleteNode": {
 			const newRoots = doOnRoot(state.roots, action.rootId, (r) =>
 				deleteNode(r, action.nodeId)
 			);
@@ -41,8 +47,63 @@ export const dynamicForestReducer = (
 				diagramText: unparse(newRoots),
 				roots: newRoots,
 				textError: false,
+				selectedNode:
+					state.selectedNode === undefined
+						? undefined
+						: findNodeById(newRoots, state.selectedNode.id),
 			};
+		}
+		case "updateLabelText": {
+			const newRoots = doOnRoot(state.roots, action.rootId, (r) =>
+				updateLabel(r, action.nodeId, action.text)
+			);
+			return {
+				...state,
+				diagramText: unparse(newRoots),
+				roots: newRoots,
+				textError: false,
+				selectedNode:
+					state.selectedNode === undefined
+						? undefined
+						: findNodeById(newRoots, state.selectedNode.id),
+			};
+		}
+		case "selectNode": {
+			const selection = findNodeById(state.roots, action.nodeId);
+			// console.log("selection is:");
+			// console.dir(selection);
+			return {
+				...state,
+				selectedNode: selection,
+			};
+		}
+		case "deselectNode": {
+			return { ...state, selectedNode: undefined };
+		}
 	}
+};
+
+export const buildInitialState = (tree: string): DynamicForest => {
+	return {
+		roots: parse(tree),
+		diagramText: tree,
+		textError: false,
+		selectedNode: undefined,
+		// get selectedNode() {
+		// 	if (this.selectedNodeId === undefined) return undefined;
+		// 	if (
+		// 		this.cachedSelectedNode !== undefined &&
+		// 		this.cachedSelectedNode.id == this.selectedNodeId
+		// 	)
+		// 		return this.cachedSelectedNode;
+		// 	for (const root of this.roots) {
+		// 		const res = findNodeById(root, this.selectedNodeId);
+		// 		if (res == null) continue;
+		// 		this.cachedSelectedNode = res;
+		// 		return res;
+		// 	}
+		// },
+	};
 };
 
 const doOnRoot = (
@@ -69,6 +130,19 @@ const deleteNode = (root: TreeNode, nodeId: string): TreeNode | undefined => {
 	return updatedTree !== null ? updatedTree : undefined;
 };
 
+const updateLabel = (
+	root: TreeNode,
+	nodeId: string,
+	newLabel: string
+): TreeNode => {
+	const updatedTree = modifyTree(root, (c: TreeNode) => {
+		if (c.id == nodeId) return { ...c, label: newLabel };
+		return c;
+	});
+	if (updatedTree === null) return root;
+	return updatedTree;
+};
+
 const modifyTree = (
 	currentNode: TreeNode,
 	editFunction: (currentNode: TreeNode) => TreeNode | null
@@ -84,16 +158,23 @@ const modifyTree = (
 	};
 };
 
-// const findNodeById = (
-// 	dyanmicTree: DynamicForest,
-// 	nodeId: string
-// ): TreeNode | null => {
-// 	let stack = [];
-// 	stack.push(dyanmicTree.roots);
-// 	while (stack.length > 1) {
-// 		const current = stack.pop();
-// 		if (!current) continue;
-// 		if (current.id == nodeId) return current;
-// 	}
-// 	return null;
-// };
+const findNodeById = (
+	roots: TreeNode[],
+	nodeId: string
+): TreeNode | undefined => {
+	for (const root of roots) {
+		let stack = [];
+		stack.push(root);
+		while (stack.length > 0) {
+			const current = stack.pop();
+			if (!current) continue;
+			if (current.id == nodeId) {
+				console.log("found");
+				console.dir(current);
+				return current;
+			}
+			stack.push(...current.children);
+		}
+	}
+	return undefined;
+};

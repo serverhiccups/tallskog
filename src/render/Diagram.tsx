@@ -1,11 +1,17 @@
-import { FunctionalComponent } from "preact";
-import { TreeNode, isLeaf } from "../tree/treeNode";
+import { FunctionalComponent, JSX } from "preact";
+import { TreeNode } from "../tree/treeNode";
 import { ResizableCanvas } from "./ResizableCanvas";
-import { RenderingContext2D, renderLayout } from "./render";
-import { Layout, getLayoutNodeAt } from "./layout";
+import { LABEL_PADDING, RenderingContext2D, renderLayout } from "./render";
+import {
+	Layout,
+	LayoutNode,
+	getLayoutNodeAt,
+	useLayoutNodeHandle,
+} from "./layout";
 import { NaiveLayout } from "./naiveLayout";
 import { Dispatch, useMemo, useState } from "preact/hooks";
 import { DynamicForestAction } from "../tree/dynamicTree";
+import styles from "./diagram.module.scss";
 
 const setCanvasProperties = (ctx: RenderingContext2D): void => {
 	ctx.fillStyle = "#000";
@@ -20,11 +26,13 @@ interface DiagramState {
 
 interface DiagramProps {
 	trees: (TreeNode | undefined)[];
+	selectedNode: TreeNode | undefined;
 	dispatch: Dispatch<DynamicForestAction>;
 }
 
 export const Diagram: FunctionalComponent<DiagramProps> = ({
 	trees,
+	selectedNode,
 	dispatch,
 }) => {
 	const offscreenCtx: OffscreenCanvasRenderingContext2D | undefined =
@@ -34,8 +42,8 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			if (ctx == null) return;
 			return ctx;
 		}, []);
-	const state: DiagramState | undefined = useMemo(() => {
-		if (!offscreenCtx) return;
+	const state: DiagramState = useMemo(() => {
+		if (!offscreenCtx) return { layouts: [] }; // !
 		setCanvasProperties(offscreenCtx);
 		const algo = new NaiveLayout();
 		let s: DiagramState = {
@@ -43,7 +51,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		};
 		let edge = 24.0;
 		for (const tree of trees) {
-			if (tree === undefined) return; // !
+			if (tree === undefined) continue; // !
 			const layout = algo.doLayout(offscreenCtx, tree);
 			s.layouts.push({
 				...layout,
@@ -69,17 +77,79 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		}
 	};
 
+	const [overlayText, setOverlayText] = useState<string>("");
+
 	const onClick = (event: MouseEvent) => {
 		console.log(`x: ${event.offsetX}, y: ${event.offsetY}`);
 		if (!state) return;
 		const n = getLayoutNodeAt(state.layouts, event.offsetX, event.offsetY);
 		console.log(n);
 		if (n === undefined) return;
-		dispatch({
-			kind: "deleteNode",
-			rootId: n.rootTreeNodeId,
-			nodeId: n.treeNodeId,
-		});
+		dispatch({ kind: "selectNode", nodeId: n.node.treeNodeId });
+
+		// setOverlayText(n.node.label ? n.node.label : "");
+		// dispatch({
+		// 	kind: "deleteNode",
+		// 	rootId: n.rootTreeNodeId,
+		// 	nodeId: n.treeNodeId,
+		// });
 	};
-	return <ResizableCanvas onClick={onClick} draw={draw}></ResizableCanvas>;
+
+	const [selectedLayoutNode, selectedLayoutNodeLayout] = useLayoutNodeHandle(
+		state.layouts,
+		selectedNode?.id
+	);
+	// coordinated in canvas space
+	// metrics TODO: calculate based on actual element
+	const width = 180;
+	const height = 30;
+	const positionOverlayStyle =
+		selectedLayoutNode === undefined
+			? "visibility: hidden;"
+			: `
+			top: ${
+				selectedLayoutNode.absoluteY +
+				selectedLayoutNodeLayout.entryY -
+				height +
+				LABEL_PADDING +
+				1
+			}px;
+			left: ${
+				selectedLayoutNode.absoluteX +
+				selectedLayoutNodeLayout.entryX -
+				width / 2.0
+			}px;
+		`;
+
+	const handleOverlayInput: JSX.InputEventHandler<HTMLInputElement> = (
+		e
+	): void => {
+		if (e.target instanceof HTMLInputElement) {
+			if (selectedNode === undefined || selectedLayoutNode === undefined)
+				return;
+			// setOverlayText(e.target.value);
+			dispatch({
+				kind: "updateLabelText",
+				rootId: selectedLayoutNode.rootTreeNodeId,
+				nodeId: selectedLayoutNode.treeNodeId,
+				text: e.target.value,
+			});
+		}
+	};
+
+	return (
+		<div id="diagram" class={styles.diagram}>
+			{selectedNode !== undefined && (
+				<input
+					id="overlay"
+					type="text"
+					class={styles.overlay}
+					style={positionOverlayStyle}
+					value={selectedNode.label}
+					onInput={handleOverlayInput}
+				/>
+			)}
+			<ResizableCanvas onClick={onClick} draw={draw}></ResizableCanvas>
+		</div>
+	);
 };

@@ -1,3 +1,4 @@
+import { useMemo } from "preact/hooks";
 import { TreeNode } from "../tree/treeNode";
 
 export interface Layout {
@@ -47,7 +48,7 @@ export const getLayoutNodeAt = (
 	layouts: Layout[],
 	x: number,
 	y: number
-): LayoutNode | undefined => {
+): { node: LayoutNode; root: Layout } | undefined => {
 	if (x < 24.0) return;
 	//TODO: very bad code, refactor
 	let edge = 24.0;
@@ -65,8 +66,22 @@ export const getLayoutNodeAt = (
 				localY > node.absoluteY
 			)
 				continue;
-			return node;
+			return { node, root: l };
 		}
 	}
 	return;
+};
+
+export const useLayoutNodeHandle = (
+	layouts: Layout[],
+	treeNodeId: string | undefined
+): [LayoutNode, Layout] | [undefined, undefined] => {
+	return useMemo(() => {
+		if (treeNodeId === undefined) return [undefined, undefined];
+		for (const l of layouts) {
+			const res = l.query.nodes.find((n) => n.treeNodeId == treeNodeId);
+			if (res !== undefined) return [res, l];
+		}
+		return [undefined, undefined];
+	}, [layouts, treeNodeId]);
 };
