@@ -18,7 +18,9 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 	text,
 	...rest
 }) => {
-	const positionOverlayStyle = `top: ${y - height + LABEL_PADDING - 1}px;
+	const positionOverlayStyle = `top: ${
+		y - height + LABEL_PADDING / 2.0 - 0.5
+	}px;
         left: ${x - width / 2.0}px;
         width: ${width}px;
     `;

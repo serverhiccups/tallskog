@@ -1,5 +1,6 @@
 import { useMemo } from "preact/hooks";
 import { TreeNode } from "../tree/treeNode";
+import { LABEL_PADDING } from "./render";
 
 export interface Layout {
 	width: number;
@@ -60,10 +61,10 @@ export const getLayoutNodeAt = (
 		if (localX < -l.width / 2.0 || localX > l.width / 2.0) continue;
 		for (const node of l.query.nodes) {
 			if (
-				localX < node.absoluteX - node.width / 2.0 ||
-				localX > node.absoluteX + node.width / 2.0 ||
-				localY < node.absoluteY - node.height ||
-				localY > node.absoluteY
+				localX < node.absoluteX - node.width / 2.0 - LABEL_PADDING / 2.0 ||
+				localX > node.absoluteX + node.width / 2.0 + LABEL_PADDING / 2.0 ||
+				localY < node.absoluteY - node.height - LABEL_PADDING / 2.0 ||
+				localY > node.absoluteY + LABEL_PADDING / 2.0
 			)
 				continue;
 			return { node, root: l };
