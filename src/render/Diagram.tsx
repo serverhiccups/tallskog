@@ -2,16 +2,12 @@ import { FunctionalComponent, JSX } from "preact";
 import { TreeNode } from "../tree/treeNode";
 import { ResizableCanvas } from "./ResizableCanvas";
 import { LABEL_PADDING, RenderingContext2D, renderLayout } from "./render";
-import {
-	Layout,
-	LayoutNode,
-	getLayoutNodeAt,
-	useLayoutNodeHandle,
-} from "./layout";
+import { Layout, getLayoutNodeAt, useLayoutNodeHandle } from "./layout";
 import { NaiveLayout } from "./naiveLayout";
-import { Dispatch, useMemo, useState } from "preact/hooks";
+import { Dispatch, useMemo } from "preact/hooks";
 import { DynamicForestAction } from "../tree/dynamicTree";
 import styles from "./diagram.module.scss";
+import { InputOverlay } from "./InputOverlay";
 
 const setCanvasProperties = (ctx: RenderingContext2D): void => {
 	ctx.fillStyle = "#000";
@@ -77,14 +73,14 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		}
 	};
 
-	const [overlayText, setOverlayText] = useState<string>("");
-
 	const onClick = (event: MouseEvent) => {
 		console.log(`x: ${event.offsetX}, y: ${event.offsetY}`);
 		if (!state) return;
 		const n = getLayoutNodeAt(state.layouts, event.offsetX, event.offsetY);
-		console.log(n);
-		if (n === undefined) return;
+		if (n === undefined) {
+			dispatch({ kind: "deselectNode" });
+			return;
+		}
 		dispatch({ kind: "selectNode", nodeId: n.node.treeNodeId });
 
 		// setOverlayText(n.node.label ? n.node.label : "");
@@ -101,26 +97,6 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 	);
 	// coordinated in canvas space
 	// metrics TODO: calculate based on actual element
-	const width = 180;
-	const height = 30;
-	const positionOverlayStyle =
-		selectedLayoutNode === undefined
-			? "visibility: hidden;"
-			: `
-			top: ${
-				selectedLayoutNode.absoluteY +
-				selectedLayoutNodeLayout.entryY -
-				height +
-				LABEL_PADDING +
-				1
-			}px;
-			left: ${
-				selectedLayoutNode.absoluteX +
-				selectedLayoutNodeLayout.entryX -
-				width / 2.0
-			}px;
-		`;
-
 	const handleOverlayInput: JSX.InputEventHandler<HTMLInputElement> = (
 		e
 	): void => {
@@ -139,17 +115,21 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 
 	return (
 		<div id="diagram" class={styles.diagram}>
-			{selectedNode !== undefined && (
-				<input
-					id="overlay"
-					type="text"
-					class={styles.overlay}
-					style={positionOverlayStyle}
-					value={selectedNode.label}
+			{selectedLayoutNode !== undefined && (
+				<InputOverlay
+					x={selectedLayoutNode.absoluteX + selectedLayoutNodeLayout.entryX}
+					y={selectedLayoutNode.absoluteY + selectedLayoutNodeLayout.entryY}
+					width={selectedLayoutNode.width}
+					height={selectedLayoutNode.height + LABEL_PADDING}
+					text={
+						selectedLayoutNode.label !== undefined
+							? selectedLayoutNode.label
+							: ""
+					}
 					onInput={handleOverlayInput}
 				/>
 			)}
-			<ResizableCanvas onClick={onClick} draw={draw}></ResizableCanvas>
+			<ResizableCanvas onMouseDown={onClick} draw={draw}></ResizableCanvas>
 		</div>
 	);
 };
