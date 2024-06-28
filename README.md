@@ -20,3 +20,7 @@ yarn dev
 ## To-do
 
 - Adding nodes via GUI
+
+## Licence
+
+Tallskog is licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0. For more information see `LICENCE`
