@@ -1,4 +1,4 @@
-import { TreeNode } from "./treeNode";
+import { rootOf, TreeNode } from "./treeNode";
 import { parse, unparse } from "./parser";
 
 export interface DynamicForest {
@@ -9,11 +9,7 @@ export interface DynamicForest {
 }
 
 export type DynamicForestAction =
-	| {
-			kind: "deleteNode";
-			rootId: string;
-			nodeId: string;
-	  }
+	| { kind: "deleteNode"; nodeId: string }
 	| { kind: "updateDiagramText"; text: string }
 	| { kind: "updateLabelText"; rootId: string; nodeId: string; text: string }
 	| { kind: "selectNode"; nodeId: string }
@@ -39,7 +35,11 @@ export const dynamicForestReducer = (
 			}
 		}
 		case "deleteNode": {
-			const newRoots = doOnRoot(state.roots, action.rootId, (r) =>
+			const node = findNodeById(state.roots, action.nodeId);
+			if (node === undefined) return state;
+			const root = rootOf(node);
+			if (root === undefined) return state;
+			const newRoots = doOnRoot(state.roots, root.id, (r) =>
 				deleteNode(r, action.nodeId)
 			);
 			return {
@@ -150,13 +150,9 @@ const findNodeById = (
 		let stack = [];
 		stack.push(root);
 		while (stack.length > 0) {
-			const current = stack.pop();
+			const current: TreeNode | undefined = stack.pop();
 			if (!current) continue;
-			if (current.id == nodeId) {
-				console.log("found");
-				console.dir(current);
-				return current;
-			}
+			if (current.id == nodeId) return current;
 			stack.push(...current.children);
 		}
 	}

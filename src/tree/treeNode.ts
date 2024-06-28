@@ -36,3 +36,9 @@ export const removeChild = (parent: TreeNode, childId: string): TreeNode => {
 export const isLeaf = (node: TreeNode): boolean => {
 	return node.children.length == 0;
 };
+
+export const rootOf = (start: TreeNode): TreeNode => {
+	let current = start;
+	while (current.parent !== undefined) current = current.parent;
+	return current;
+};

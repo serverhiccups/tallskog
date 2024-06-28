@@ -2,7 +2,8 @@ import { Diagram } from "./render/Diagram";
 import styles from "./app.module.scss";
 import { useReducer } from "preact/hooks";
 import { buildInitialState, dynamicForestReducer } from "./tree/dynamicTree";
-import { TextEditor } from "./editor/TextEditor";
+import { TextEditor } from "./ui/TextEditor";
+import { Toolbar } from "./ui/Toolbar";
 
 export const App = () => {
 	const startingText = `["Hello" ["A"]["B"]]
@@ -19,13 +20,16 @@ export const App = () => {
 			<div id="ast" class={styles.texteditor}>
 				<TextEditor
 					value={state.diagramText}
-					onChange={(v: string) => {
+					placeholder={"Hello fart"}
+					onUpdate={(v: string) => {
 						dispatch({ kind: "updateDiagramText", text: v });
 					}}
 					isError={state.textError}
 				/>
 			</div>
-			<div id="toolbar" class={styles.toolbar}></div>
+			<div id="toolbar" class={styles.toolbar}>
+				<Toolbar selectedNode={state.selectedNode} dispatch={dispatch} />
+			</div>
 			<div id="diagram" class={styles.diagram}>
 				<Diagram
 					trees={state.roots}
