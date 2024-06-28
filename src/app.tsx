@@ -16,23 +16,22 @@ export const App = () => {
 	return (
 		<div id="app" class={styles.app}>
 			<nav class={styles.nav}>Tallskog</nav>
-			<div id="content" class={styles.content}>
-				<div id="ast">
-					<TextEditor
-						value={state.diagramText}
-						onChange={(v: string) => {
-							dispatch({ kind: "updateDiagramText", text: v });
-						}}
-						isError={state.textError}
-					/>
-				</div>
-				<div id="output">
-					<Diagram
-						trees={state.roots}
-						selectedNode={state.selectedNode}
-						dispatch={dispatch}
-					></Diagram>
-				</div>
+			<div id="ast" class={styles.texteditor}>
+				<TextEditor
+					value={state.diagramText}
+					onChange={(v: string) => {
+						dispatch({ kind: "updateDiagramText", text: v });
+					}}
+					isError={state.textError}
+				/>
+			</div>
+			<div id="toolbar" class={styles.toolbar}></div>
+			<div id="diagram" class={styles.diagram}>
+				<Diagram
+					trees={state.roots}
+					selectedNode={state.selectedNode}
+					dispatch={dispatch}
+				></Diagram>
 			</div>
 		</div>
 	);

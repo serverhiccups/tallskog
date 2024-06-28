@@ -1,5 +1,4 @@
 import { useRef, useEffect } from "preact/hooks";
-import styles from "./canvas.module.scss";
 import { FunctionalComponent } from "preact";
 import { JSX } from "preact";
 
@@ -38,5 +37,5 @@ export const ResizableCanvas: FunctionalComponent<ResizableCanvasProps> = ({
 		};
 	}, [draw]);
 
-	return <canvas class={styles.canvas} ref={canvasRef} {...rest}></canvas>;
+	return <canvas ref={canvasRef} {...rest}></canvas>;
 };
