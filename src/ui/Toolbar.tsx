@@ -17,9 +17,8 @@ export const Toolbar: FunctionalComponent<ToolbarProps> = ({
 	return (
 		<div class={styles.toolbar} {...rest}>
 			<span
-				onClick={(e) => {
+				onClick={() => {
 					if (selectedNode === undefined) return;
-					console.log("dispatching");
 					dispatch({ kind: "deleteNode", nodeId: selectedNode.id });
 				}}
 			>
