@@ -5,6 +5,11 @@ export type TreeNode = Readonly<{
 	parent: TreeNode | undefined;
 }>;
 
+export type TreeInsertionPosition = {
+	parent: string;
+	index: number;
+};
+
 export const createTreeNode = (
 	label: string,
 	parent: TreeNode | undefined,

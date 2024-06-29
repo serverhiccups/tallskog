@@ -1,4 +1,9 @@
-import { rootOf, TreeNode } from "./treeNode";
+import {
+	createTreeNode,
+	rootOf,
+	TreeInsertionPosition,
+	TreeNode,
+} from "./treeNode";
 import { parse, unparse } from "./parser";
 
 export interface DynamicForest {
@@ -13,7 +18,13 @@ export type DynamicForestAction =
 	| { kind: "updateDiagramText"; text: string }
 	| { kind: "updateLabelText"; rootId: string; nodeId: string; text: string }
 	| { kind: "selectNode"; nodeId: string }
-	| { kind: "deselectNode" };
+	| { kind: "deselectNode" }
+	| {
+			kind: "moveNode";
+			nodeId: string;
+			insertionPosition: TreeInsertionPosition;
+	  }
+	| { kind: "makeSibling"; nodeId: string };
 
 export const dynamicForestReducer = (
 	state: DynamicForest,
@@ -78,6 +89,53 @@ export const dynamicForestReducer = (
 		case "deselectNode": {
 			return { ...state, selectedNode: undefined };
 		}
+		case "moveNode": {
+			const toMove = findNodeById(state.roots, action.nodeId);
+			if (toMove === undefined) return state;
+			const root = rootOf(toMove);
+			if (root === undefined) return state;
+			const slimRoots = doOnRoot(state.roots, root.id, (r) =>
+				deleteNode(r, toMove.id)
+			);
+			const insertionParent = findNodeById(
+				slimRoots,
+				action.insertionPosition.parent
+			);
+			if (insertionParent === undefined) return state;
+			const insertionRoot = rootOf(insertionParent);
+			const withInsertion = doOnRoot(slimRoots, insertionRoot.id, (r) =>
+				insertNode(r, toMove, action.insertionPosition)
+			);
+			return {
+				...state,
+				diagramText: unparse(withInsertion),
+				roots: withInsertion,
+				selectedNode:
+					state.selectedNode === undefined
+						? undefined
+						: findNodeById(withInsertion, state.selectedNode.id),
+			};
+		}
+		case "makeSibling": {
+			const node = findNodeById(state.roots, action.nodeId);
+			if (node === undefined) return state;
+			const root = rootOf(node);
+			const p = node.parent;
+			if (p === undefined) return state;
+			debugger;
+			const inserted = doOnRoot(state.roots, root.id, (r) =>
+				insertNode(r, createTreeNode("sibling", undefined, undefined), {
+					parent: p.id,
+					index: 1,
+				})
+			);
+			return {
+				...state,
+				diagramText: unparse(inserted),
+				roots: inserted,
+				selectedNode: undefined,
+			};
+		}
 	}
 };
 
@@ -114,6 +172,23 @@ const deleteNode = (root: TreeNode, nodeId: string): TreeNode | undefined => {
 	return updatedTree !== null ? updatedTree : undefined;
 };
 
+const insertNode = (
+	root: TreeNode,
+	node: TreeNode,
+	pos: TreeInsertionPosition
+): TreeNode | undefined => {
+	const updatedTree = modifyTree(root, (c: TreeNode) => {
+		if (c.id == pos.parent) {
+			const kids = [...c.children];
+			kids.splice(pos.index, 0, node); // Replace node
+			return { ...c, children: kids.map((n) => ({ ...n, parent: c })) };
+		} else {
+			return c;
+		}
+	});
+	return updatedTree !== null ? updatedTree : undefined;
+};
+
 const updateLabel = (
 	root: TreeNode,
 	nodeId: string,
@@ -136,7 +211,7 @@ const modifyTree = (
 
 	return {
 		...res,
-		children: currentNode.children
+		children: res.children
 			.map((c) => modifyTree(c, editFunction))
 			.filter((c) => c !== null),
 	};

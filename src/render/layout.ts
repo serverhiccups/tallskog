@@ -1,5 +1,5 @@
 import { useMemo } from "preact/hooks";
-import { TreeNode } from "../tree/treeNode";
+import { TreeInsertionPosition, TreeNode } from "../tree/treeNode";
 import { LABEL_PADDING } from "./render";
 
 export interface Layout {
@@ -19,6 +19,7 @@ export interface LayoutNode {
 	label: string | undefined;
 	treeNodeId: string;
 	rootTreeNodeId: string;
+	parent: LayoutNode | undefined;
 	x: number;
 	y: number;
 	absoluteX: number;
@@ -52,11 +53,9 @@ export const getLayoutNodeAt = (
 ): { node: LayoutNode; root: Layout } | undefined => {
 	if (x < 24.0) return;
 	//TODO: very bad code, refactor
-	let edge = 24.0;
 	for (const l of layouts) {
-		const localX = x - edge - l.width / 2.0;
-		const localY = y - 72.0;
-		edge += l.width + 24.0;
+		const localX = x - l.entryX;
+		const localY = y - l.entryY;
 
 		if (localX < -l.width / 2.0 || localX > l.width / 2.0) continue;
 		for (const node of l.query.nodes) {
@@ -85,4 +84,36 @@ export const useLayoutNodeHandle = (
 		}
 		return [undefined, undefined];
 	}, [layouts, treeNodeId]);
+};
+
+export const getInsertionPosition = (
+	layouts: Layout[],
+	x: number,
+	y: number
+): TreeInsertionPosition | undefined => {
+	const closestLayout = layouts.reduce((a, b) =>
+		Math.abs(a.entryX - x) < Math.abs(b.entryX - x) ? a : b
+	);
+	const nodesInBand = closestLayout.query.nodes.filter(
+		(n) => Math.abs(n.absoluteY + closestLayout.entryY - y) < 20
+	);
+	if (nodesInBand.length == 0) return undefined;
+	const closestNode = nodesInBand.reduce((a, b) =>
+		Math.abs(a.absoluteX + closestLayout.entryX - x) <
+		Math.abs(b.absoluteX + closestLayout.entryX - x)
+			? a
+			: b
+	);
+	if (closestNode === undefined) return;
+	const insertOnRight: boolean =
+		closestNode.absoluteX + closestLayout.entryX < x;
+	if (closestNode.parent === undefined) return undefined; // Cannot insert next to the root
+	const index = closestNode.parent.children.findIndex(
+		(c) => c.treeNodeId == closestNode.treeNodeId
+	);
+	if (index == -1) return undefined;
+	return {
+		parent: closestNode.parent.treeNodeId,
+		index: index + (insertOnRight ? 1 : 0),
+	};
 };

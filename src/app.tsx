@@ -6,7 +6,7 @@ import { TextEditor } from "./ui/TextEditor";
 import { Toolbar } from "./ui/Toolbar";
 
 export const App = () => {
-	const startingText = `["Hello" ["A"]["B"]]
+	const startingText = `["Hello" ["A" ["C"]["D"]]["B"]]
 ["Tree" ["Number"]["2"]]`;
 
 	const [state, dispatch] = useReducer(

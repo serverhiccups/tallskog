@@ -1,10 +1,16 @@
 import { FunctionalComponent, JSX } from "preact";
-import { TreeNode } from "../tree/treeNode";
+import { TreeNode, TreeInsertionPosition } from "../tree/treeNode";
 import { ResizableCanvas } from "./ResizableCanvas";
 import { LABEL_PADDING, RenderingContext2D, renderLayout } from "./render";
-import { Layout, getLayoutNodeAt, useLayoutNodeHandle } from "./layout";
+import {
+	Layout,
+	LayoutNode,
+	getInsertionPosition,
+	getLayoutNodeAt,
+	useLayoutNodeHandle,
+} from "./layout";
 import { NaiveLayout } from "./naiveLayout";
-import { Dispatch, useMemo } from "preact/hooks";
+import { Dispatch, useMemo, useState } from "preact/hooks";
 import { DynamicForestAction } from "../tree/dynamicTree";
 import styles from "./diagram.module.scss";
 import { InputOverlay } from "./InputOverlay";
@@ -73,16 +79,42 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		}
 	};
 
-	const onClick = (event: MouseEvent) => {
-		if (!state) return;
-		// Find the layout node we clicked on
-		const n = getLayoutNodeAt(state.layouts, event.offsetX, event.offsetY);
-		if (n === undefined) {
-			// Deselect if we clicked on nothing
-			dispatch({ kind: "deselectNode" });
-			return;
+	const [draggingNode, setDraggingNode] = useState<LayoutNode | false>(false);
+
+	const onMouseUp = (event: MouseEvent) => {
+		if (draggingNode) {
+			// we are dropping a tree
+			const insertAt = getInsertionPosition(
+				state.layouts,
+				event.offsetX,
+				event.offsetY
+			);
+			if (insertAt === undefined) {
+				setDraggingNode(false);
+				return;
+			}
+			dispatch({
+				kind: "moveNode",
+				nodeId: draggingNode.treeNodeId,
+				insertionPosition: insertAt,
+			});
+		} else {
+			// we are (de)selecting a node
+			// Find the layout node we clicked on
+			const n = getLayoutNodeAt(state.layouts, event.offsetX, event.offsetY);
+			if (n === undefined) {
+				// Deselect if we clicked on nothing
+				dispatch({ kind: "deselectNode" });
+				return;
+			}
+			dispatch({ kind: "selectNode", nodeId: n.node.treeNodeId });
 		}
-		dispatch({ kind: "selectNode", nodeId: n.node.treeNodeId });
+	};
+
+	const onMouseDown = (e: MouseEvent) => {
+		const n = getLayoutNodeAt(state.layouts, e.offsetX, e.offsetY);
+		if (n === undefined) return;
+		setDraggingNode(n.node);
 	};
 
 	const [selectedLayoutNode, selectedLayoutNodeLayout] = useLayoutNodeHandle(
@@ -121,7 +153,13 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 					onInput={handleOverlayInput}
 				/>
 			)}
-			<ResizableCanvas onMouseDown={onClick} draw={draw}></ResizableCanvas>
+			<ResizableCanvas
+				onMouseUp={onMouseUp}
+				onMouseDown={onMouseDown}
+				// onDragStart={onDragStart}
+				// onMouseMove={onMouseMove}
+				draw={draw}
+			></ResizableCanvas>
 		</div>
 	);
 };
