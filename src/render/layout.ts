@@ -46,6 +46,20 @@ export const buildLayoutNodeQueryStructure = (
 	};
 };
 
+const isPointInsideLayoutNode = (
+	node: LayoutNode,
+	x: number,
+	y: number
+): boolean => {
+	// the baseline is at x = 0
+	return (
+		y < LABEL_PADDING / 2.0 &&
+		y > -node.height - LABEL_PADDING / 2.0 &&
+		x > -node.width / 2.0 - LABEL_PADDING / 2.0 &&
+		x < node.width / 2.0 + LABEL_PADDING / 2.0
+	);
+};
+
 export const getLayoutNodeAt = (
 	layouts: Layout[],
 	x: number,
@@ -60,13 +74,13 @@ export const getLayoutNodeAt = (
 		if (localX < -l.width / 2.0 || localX > l.width / 2.0) continue;
 		for (const node of l.query.nodes) {
 			if (
-				localX < node.absoluteX - node.width / 2.0 - LABEL_PADDING / 2.0 ||
-				localX > node.absoluteX + node.width / 2.0 + LABEL_PADDING / 2.0 ||
-				localY < node.absoluteY - node.height - LABEL_PADDING / 2.0 ||
-				localY > node.absoluteY + LABEL_PADDING / 2.0
+				isPointInsideLayoutNode(
+					node,
+					localX - node.absoluteX,
+					localY - node.absoluteY
+				)
 			)
-				continue;
-			return { node, root: l };
+				return { node, root: l };
 		}
 	}
 	return;
@@ -105,6 +119,19 @@ export const getInsertionPosition = (
 			: b
 	);
 	if (closestNode === undefined) return;
+	// If we're on top of a node, insert as a child to it
+	if (
+		isPointInsideLayoutNode(
+			closestNode,
+			x - closestLayout.entryX - closestNode.absoluteX,
+			y - closestLayout.entryY - closestNode.absoluteY
+		)
+	) {
+		return {
+			parent: closestNode.treeNodeId,
+			index: 0,
+		};
+	}
 	const insertOnRight: boolean =
 		closestNode.absoluteX + closestLayout.entryX < x;
 	if (closestNode.parent === undefined) return undefined; // Cannot insert next to the root

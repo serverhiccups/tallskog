@@ -1,7 +1,7 @@
 import { Diagram } from "./render/Diagram";
 import styles from "./app.module.scss";
 import { useReducer } from "preact/hooks";
-import { buildInitialState, dynamicForestReducer } from "./tree/dynamicTree";
+import { buildInitialState, dynamicForestReducer } from "./tree/dynamicForest";
 import { TextEditor } from "./ui/TextEditor";
 import { Toolbar } from "./ui/Toolbar";
 

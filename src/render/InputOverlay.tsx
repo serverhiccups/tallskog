@@ -26,15 +26,6 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
         user-select: none;
     `;
 
-	const onMouseMove = (e: MouseEvent) => {
-		if (e.target instanceof HTMLInputElement) {
-			if (document.activeElement == e.target) return;
-			e.preventDefault();
-		}
-	};
-
-	const onMouseDown = (e: MouseEvent) => {};
-
 	return (
 		<input
 			id="overlay"

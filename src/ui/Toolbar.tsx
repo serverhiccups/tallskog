@@ -1,6 +1,6 @@
 import { FunctionalComponent, JSX } from "preact";
 import { Dispatch } from "preact/hooks";
-import { DynamicForestAction } from "../tree/dynamicTree";
+import { DynamicForestAction } from "../tree/dynamicForest";
 import styles from "./toolbar.module.scss";
 import { TreeNode } from "../tree/treeNode";
 

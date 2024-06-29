@@ -106,6 +106,7 @@ export const dynamicForestReducer = (
 			const withInsertion = doOnRoot(slimRoots, insertionRoot.id, (r) =>
 				insertNode(r, toMove, action.insertionPosition)
 			);
+			debugger;
 			return {
 				...state,
 				diagramText: unparse(withInsertion),
@@ -179,6 +180,7 @@ const insertNode = (
 	const updatedTree = modifyTree(root, (c: TreeNode) => {
 		if (c.id == pos.parent) {
 			const kids = [...c.children];
+			if (kids.length == 0) return { ...c, children: [{ ...node, parent: c }] };
 			kids.splice(pos.index, 0, node); // Replace node
 			return { ...c, children: kids.map((n) => ({ ...n, parent: c })) };
 		} else {

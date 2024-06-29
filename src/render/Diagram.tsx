@@ -11,7 +11,7 @@ import {
 } from "./layout";
 import { NaiveLayout } from "./naiveLayout";
 import { Dispatch, useMemo, useRef, useState } from "preact/hooks";
-import { DynamicForestAction } from "../tree/dynamicTree";
+import { DynamicForestAction } from "../tree/dynamicForest";
 import styles from "./diagram.module.scss";
 import { InputOverlay } from "./InputOverlay";
 
