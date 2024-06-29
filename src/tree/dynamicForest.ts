@@ -106,7 +106,6 @@ export const dynamicForestReducer = (
 			const withInsertion = doOnRoot(slimRoots, insertionRoot.id, (r) =>
 				insertNode(r, toMove, action.insertionPosition)
 			);
-			debugger;
 			return {
 				...state,
 				diagramText: unparse(withInsertion),
