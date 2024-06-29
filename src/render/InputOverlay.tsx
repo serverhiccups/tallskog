@@ -23,7 +23,17 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 	}px;
         left: ${x - width / 2.0}px;
         width: ${width}px;
+        user-select: none;
     `;
+
+	const onMouseMove = (e: MouseEvent) => {
+		if (e.target instanceof HTMLInputElement) {
+			if (document.activeElement == e.target) return;
+			e.preventDefault();
+		}
+	};
+
+	const onMouseDown = (e: MouseEvent) => {};
 
 	return (
 		<input
@@ -32,6 +42,7 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 			class={styles.overlay}
 			style={positionOverlayStyle}
 			value={text}
+			// onMouseMove={onMouseMove}
 			{...rest}
 		/>
 	);

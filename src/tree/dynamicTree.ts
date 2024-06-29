@@ -122,7 +122,6 @@ export const dynamicForestReducer = (
 			const root = rootOf(node);
 			const p = node.parent;
 			if (p === undefined) return state;
-			debugger;
 			const inserted = doOnRoot(state.roots, root.id, (r) =>
 				insertNode(r, createTreeNode("sibling", undefined, undefined), {
 					parent: p.id,
