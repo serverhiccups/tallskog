@@ -10,12 +10,13 @@ import {
 import {
 	Layout,
 	LayoutAlgorithm,
+	buildLayoutNodeQueryStructure,
 	getInsertionPosition,
 	getLayoutNodeAt,
 	useLayoutNodeHandle,
 } from "./layout";
 import { NaiveLayout } from "./naiveLayout";
-import { Dispatch, useMemo, useRef } from "preact/hooks";
+import { Dispatch, useMemo, useRef, useState } from "preact/hooks";
 import { DynamicForestAction } from "../tree/dynamicForest";
 import styles from "./diagram.module.scss";
 import { InputOverlay } from "./InputOverlay";
@@ -54,10 +55,11 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 	// const [draggingNode, setDraggingNode] = useState<LayoutNode | false>(false);
 	const [currentlyDragging, dndActions] = useDndState();
 
+	const algo: LayoutAlgorithm = new NaiveLayout();
+
 	const state: DiagramState = useMemo(() => {
 		if (!offscreenCtx) return { layouts: [] }; // !
 		setCanvasProperties(offscreenCtx);
-		const algo: LayoutAlgorithm = new NaiveLayout();
 		let s: DiagramState = {
 			layouts: [],
 		};
@@ -79,6 +81,23 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		return s;
 	}, [trees, currentlyDragging]);
 
+	const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({
+		x: 0,
+		y: 0,
+	});
+
+	const draggingPreview: Layout | undefined = useMemo(() => {
+		if (currentlyDragging === undefined) return undefined;
+		return {
+			width: currentlyDragging.width,
+			height: currentlyDragging.height,
+			entryX: mousePosition.x,
+			entryY: mousePosition.y + 10.0,
+			root: currentlyDragging,
+			query: buildLayoutNodeQueryStructure(currentlyDragging),
+		};
+	}, [currentlyDragging, mousePosition]);
+
 	const draw = (ctx: CanvasRenderingContext2D) => {
 		if (!state) return;
 		// Show tracks
@@ -90,6 +109,9 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		setCanvasProperties(ctx);
 		for (const la of state.layouts) {
 			renderLayout(ctx, la);
+		}
+		if (draggingPreview !== undefined) {
+			renderLayout(ctx, draggingPreview);
 		}
 	};
 
@@ -152,6 +174,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 
 	const onMouseMove = (e: MouseEvent) => {
 		const mouseCoords = mouseCoordsToCanvasSpace(e);
+		setMousePosition(mouseCoords);
 		if (e.buttons & 1) {
 			dndActions.movedOver(
 				getLayoutNodeAt(state.layouts, mouseCoords.x, mouseCoords.y)?.node
