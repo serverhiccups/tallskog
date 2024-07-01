@@ -15,12 +15,14 @@ export interface LayoutAlgorithm {
 	doLayout(
 		ctx: RenderingContext2D,
 		tree: TreeNode,
-		stubId: string | undefined
+		stubId: string | undefined,
+		highlighted: string[]
 	): Layout;
 }
 
 export interface LayoutNode {
 	label: string;
+	highlighted: boolean;
 	treeNodeId: string;
 	rootTreeNodeId: string;
 	parent: LayoutNode | undefined;

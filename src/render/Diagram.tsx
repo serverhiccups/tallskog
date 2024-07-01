@@ -69,7 +69,9 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			const layout = algo.doLayout(
 				offscreenCtx,
 				tree,
-				currentlyDragging?.treeNodeId
+				currentlyDragging?.treeNodeId,
+				// selectedNode ? [selectedNode.id] : []
+				[]
 			);
 			s.layouts.push({
 				...layout,
@@ -79,7 +81,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			edge += layout.width + 36.0;
 		}
 		return s;
-	}, [trees, currentlyDragging]);
+	}, [trees, currentlyDragging, selectedNode]);
 
 	const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({
 		x: 0,

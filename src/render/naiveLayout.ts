@@ -16,9 +16,21 @@ export class NaiveLayout implements LayoutAlgorithm {
 	doLayout(
 		ctx: RenderingContext2D,
 		tree: TreeNode,
-		stubId: string | undefined
+		stubId: string | undefined,
+		highlighted: string[]
 	): Layout {
-		const lt = layout(ctx, tree, stubId, tree.id, undefined, 0, 0, 0, 0);
+		const lt = layout(
+			ctx,
+			tree,
+			stubId,
+			highlighted,
+			tree.id,
+			undefined,
+			0,
+			0,
+			0,
+			0
+		);
 		const width = calculateTreeNodeWidth(ctx, tree);
 		return {
 			width: width,
@@ -35,6 +47,7 @@ const layout = (
 	ctx: RenderingContext2D,
 	current: TreeNode,
 	stubId: string | undefined,
+	highlighted: string[],
 	rootTreeNodeId: string,
 	parent: LayoutNode | undefined,
 	x: number,
@@ -45,6 +58,7 @@ const layout = (
 	let labelMetrics = calculateTextBounds(ctx, current.label);
 	let l: LayoutNode = {
 		label: current.label,
+		highlighted: highlighted.includes(current.id),
 		treeNodeId: current.id,
 		rootTreeNodeId: rootTreeNodeId,
 		parent: parent,
@@ -67,6 +81,7 @@ const layout = (
 				ctx,
 				child,
 				stubId,
+				highlighted,
 				rootTreeNodeId,
 				l,
 				childCenterX,
