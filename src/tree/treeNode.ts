@@ -47,3 +47,14 @@ export const rootOf = (start: TreeNode): TreeNode => {
 	while (current.parent !== undefined) current = current.parent;
 	return current;
 };
+
+export const reparent = (
+	node: TreeNode,
+	parent: TreeNode | undefined
+): TreeNode => {
+	let newNode: TreeNode = { ...node, parent: parent };
+	// Bypass the readonly-ness of the node to reparent things :|
+	//@ts-expect-error
+	newNode.children = node.children.map((c) => reparent(c, newNode));
+	return newNode;
+};

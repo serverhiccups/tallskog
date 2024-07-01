@@ -1,5 +1,6 @@
 import {
 	createTreeNode,
+	reparent,
 	rootOf,
 	TreeInsertionPosition,
 	TreeNode,
@@ -159,13 +160,13 @@ const doOnRoot = (
 		roots.splice(rIdx, 1);
 		return [...roots];
 	}
-	roots[rIdx] = res;
+	roots[rIdx] = reparent(res, undefined);
 	return [...roots];
 };
 
 const deleteNode = (root: TreeNode, nodeId: string): TreeNode | undefined => {
 	const updatedTree = modifyTree(root, (c: TreeNode) => {
-		if (c.id == nodeId) return null;
+		if (c.id === nodeId) return null;
 		return c;
 	});
 	return updatedTree !== null ? updatedTree : undefined;
@@ -179,9 +180,9 @@ const insertNode = (
 	const updatedTree = modifyTree(root, (c: TreeNode) => {
 		if (c.id == pos.parent) {
 			const kids = [...c.children];
-			if (kids.length == 0) return { ...c, children: [{ ...node, parent: c }] };
+			if (kids.length == 0) return { ...c, children: [node] };
 			kids.splice(pos.index, 0, node); // Replace node
-			return { ...c, children: kids.map((n) => ({ ...n, parent: c })) };
+			return { ...c, children: kids };
 		} else {
 			return c;
 		}
