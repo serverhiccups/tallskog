@@ -1,6 +1,6 @@
 import { useMemo } from "preact/hooks";
 import { TreeInsertionPosition, TreeNode } from "../tree/treeNode";
-import { LABEL_PADDING } from "./render";
+import { LABEL_PADDING, RenderingContext2D } from "./render";
 
 export interface Layout {
 	width: number;
@@ -12,7 +12,11 @@ export interface Layout {
 }
 
 export interface LayoutAlgorithm {
-	doLayout(ctx: CanvasRenderingContext2D, tree: TreeNode): Layout;
+	doLayout(
+		ctx: RenderingContext2D,
+		tree: TreeNode,
+		stubId: string | undefined
+	): Layout;
 }
 
 export interface LayoutNode {

@@ -4,6 +4,7 @@ import { ResizableCanvas } from "./ResizableCanvas";
 import { LABEL_PADDING, RenderingContext2D, renderLayout } from "./render";
 import {
 	Layout,
+	LayoutAlgorithm,
 	LayoutNode,
 	getInsertionPosition,
 	getLayoutNodeAt,
@@ -44,17 +45,24 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			if (ctx == null) return;
 			return ctx;
 		}, []);
+
+	const [draggingNode, setDraggingNode] = useState<LayoutNode | false>(false);
+
 	const state: DiagramState = useMemo(() => {
 		if (!offscreenCtx) return { layouts: [] }; // !
 		setCanvasProperties(offscreenCtx);
-		const algo = new NaiveLayout();
+		const algo: LayoutAlgorithm = new NaiveLayout();
 		let s: DiagramState = {
 			layouts: [],
 		};
 		let edge = 24.0;
 		for (const tree of trees) {
 			if (tree === undefined) continue; // !
-			const layout = algo.doLayout(offscreenCtx, tree);
+			const layout = algo.doLayout(
+				offscreenCtx,
+				tree,
+				draggingNode ? draggingNode.treeNodeId : undefined
+			);
 			s.layouts.push({
 				...layout,
 				entryX: edge + layout.entryX,
@@ -62,7 +70,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			edge += layout.width + 24.0;
 		}
 		return s;
-	}, [trees]);
+	}, [trees, draggingNode]);
 
 	const draw = (ctx: CanvasRenderingContext2D) => {
 		if (!state) return;
@@ -92,8 +100,6 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			y: e.clientY - rect.top,
 		};
 	};
-
-	const [draggingNode, setDraggingNode] = useState<LayoutNode | false>(false);
 
 	const onMouseUp = (event: MouseEvent) => {
 		console.log("mouse up");

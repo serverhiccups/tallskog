@@ -13,8 +13,12 @@ import {
 } from "./layout";
 
 export class NaiveLayout implements LayoutAlgorithm {
-	doLayout(ctx: RenderingContext2D, tree: TreeNode): Layout {
-		const lt = layout(ctx, tree, tree.id, undefined, 0, 0, 0, 0);
+	doLayout(
+		ctx: RenderingContext2D,
+		tree: TreeNode,
+		stubId: string | undefined
+	): Layout {
+		const lt = layout(ctx, tree, stubId, tree.id, undefined, 0, 0, 0, 0);
 		const width = calculateTreeNodeWidth(ctx, tree);
 		return {
 			width: width,
@@ -30,6 +34,7 @@ export class NaiveLayout implements LayoutAlgorithm {
 const layout = (
 	ctx: RenderingContext2D,
 	current: TreeNode,
+	stubId: string | undefined,
 	rootTreeNodeId: string,
 	parent: LayoutNode | undefined,
 	x: number,
@@ -51,6 +56,7 @@ const layout = (
 		height: labelMetrics.height,
 		children: [],
 	};
+	if (current.id === stubId) return { ...l, label: "" };
 	let childrenWidth = calculateChildrenWidth(ctx, current.children);
 	let edge = -childrenWidth / 2.0;
 	for (let child of current.children) {
@@ -60,6 +66,7 @@ const layout = (
 			layout(
 				ctx,
 				child,
+				stubId,
 				rootTreeNodeId,
 				l,
 				childCenterX,
