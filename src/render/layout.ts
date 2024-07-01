@@ -20,7 +20,7 @@ export interface LayoutAlgorithm {
 }
 
 export interface LayoutNode {
-	label: string | undefined;
+	label: string;
 	treeNodeId: string;
 	rootTreeNodeId: string;
 	parent: LayoutNode | undefined;

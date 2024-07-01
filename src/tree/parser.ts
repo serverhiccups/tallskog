@@ -31,7 +31,7 @@ const parseTree = (tok: Tokeniser, parent: TreeNode | undefined): TreeNode => {
 	expect(tok, PATTERNS.OPEN_SQUARE);
 	if (tok.has(PATTERNS.CLOSE_SQUARE)) {
 		tok.next(PATTERNS.CLOSE_SQUARE);
-		return createTreeNode("", parent, []);
+		return createTreeNode("∅", parent, []);
 	}
 	let label = require(tok, PATTERNS.LABEL_TEXT);
 	let children: TreeNode[] = [];

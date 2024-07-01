@@ -38,7 +38,7 @@ const lineBetween = (
 };
 
 export const calculateTextBounds = (ctx: RenderingContext2D, text: string) => {
-	let metrics = ctx.measureText(text ? text : "∅");
+	let metrics = ctx.measureText(text);
 	return {
 		width: metrics.width + LABEL_PADDING,
 		height: metrics.emHeightDescent + metrics.emHeightDescent + LABEL_PADDING,
@@ -59,7 +59,7 @@ const renderLayoutNode = (
 	// 	root.height + LABEL_PADDING
 	// );
 	// ctx.fillStyle = "black";
-	ctx.fillText(root.label ? root.label : "∅", x, y);
+	ctx.fillText(root.label, x, y);
 	for (let child of root.children) {
 		lineBetween(ctx, x, y + 8.0, x + child.x, y + child.y - 24.0);
 		renderLayoutNode(ctx, child, x + child.x, y + child.y);
