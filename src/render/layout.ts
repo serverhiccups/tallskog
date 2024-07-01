@@ -112,9 +112,9 @@ export const getInsertionPosition = (
 	const closestLayout = layouts.reduce((a, b) =>
 		Math.abs(a.entryX - x) < Math.abs(b.entryX - x) ? a : b
 	);
-	const nodesInBand = closestLayout.query.nodes.filter(
-		(n) => Math.abs(n.absoluteY + closestLayout.entryY - y) < 20
-	);
+	const nodesInBand = closestLayout.query.nodes
+		.filter((n) => Math.abs(n.absoluteY + closestLayout.entryY - y) < 20)
+		.filter((n) => n.treeNodeId !== "stub");
 	if (nodesInBand.length == 0) return undefined;
 	const closestNode = nodesInBand.reduce((a, b) =>
 		Math.abs(a.absoluteX + closestLayout.entryX - x) <

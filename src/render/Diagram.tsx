@@ -10,13 +10,12 @@ import {
 import {
 	Layout,
 	LayoutAlgorithm,
-	LayoutNode,
 	getInsertionPosition,
 	getLayoutNodeAt,
 	useLayoutNodeHandle,
 } from "./layout";
 import { NaiveLayout } from "./naiveLayout";
-import { Dispatch, useMemo, useRef, useState } from "preact/hooks";
+import { Dispatch, useMemo, useRef } from "preact/hooks";
 import { DynamicForestAction } from "../tree/dynamicForest";
 import styles from "./diagram.module.scss";
 import { InputOverlay } from "./InputOverlay";
@@ -89,7 +88,6 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		// }
 		// Set up canvas
 		setCanvasProperties(ctx);
-		if (!state) return;
 		for (const la of state.layouts) {
 			renderLayout(ctx, la);
 		}
@@ -114,10 +112,6 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		// Find the layout node we clicked on
 		const n = getLayoutNodeAt(state.layouts, mouseCoords.x, mouseCoords.y);
 		if (currentlyDragging) {
-			// if (draggingNode.treeNodeId === n?.node.treeNodeId) {
-			// 	setDraggingNode(false);
-			// 	return;
-			// }
 			// we are dropping a tree
 			const insertAt = getInsertionPosition(
 				state.layouts,
