@@ -20,6 +20,7 @@ import { Dispatch, useMemo, useRef, useState } from "preact/hooks";
 import { DynamicForestAction } from "../tree/dynamicForest";
 import styles from "./diagram.module.scss";
 import { InputOverlay } from "./InputOverlay";
+import { useDndState } from "./dndState";
 
 const setCanvasProperties = (ctx: RenderingContext2D): void => {
 	ctx.fillStyle = "#000";
@@ -51,7 +52,8 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			return ctx;
 		}, []);
 
-	const [draggingNode, setDraggingNode] = useState<LayoutNode | false>(false);
+	// const [draggingNode, setDraggingNode] = useState<LayoutNode | false>(false);
+	const [currentlyDragging, dndActions] = useDndState();
 
 	const state: DiagramState = useMemo(() => {
 		if (!offscreenCtx) return { layouts: [] }; // !
@@ -66,7 +68,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			const layout = algo.doLayout(
 				offscreenCtx,
 				tree,
-				draggingNode ? draggingNode.treeNodeId : undefined
+				currentlyDragging?.treeNodeId
 			);
 			s.layouts.push({
 				...layout,
@@ -76,7 +78,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			edge += layout.width + 36.0;
 		}
 		return s;
-	}, [trees, draggingNode]);
+	}, [trees, currentlyDragging]);
 
 	const draw = (ctx: CanvasRenderingContext2D) => {
 		if (!state) return;
@@ -108,15 +110,14 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 	};
 
 	const onMouseUp = (event: MouseEvent) => {
-		console.log("mouse up");
 		const mouseCoords = mouseCoordsToCanvasSpace(event);
 		// Find the layout node we clicked on
 		const n = getLayoutNodeAt(state.layouts, mouseCoords.x, mouseCoords.y);
-		if (draggingNode) {
-			if (draggingNode.treeNodeId === n?.node.treeNodeId) {
-				setDraggingNode(false);
-				return;
-			}
+		if (currentlyDragging) {
+			// if (draggingNode.treeNodeId === n?.node.treeNodeId) {
+			// 	setDraggingNode(false);
+			// 	return;
+			// }
 			// we are dropping a tree
 			const insertAt = getInsertionPosition(
 				state.layouts,
@@ -124,15 +125,15 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 				mouseCoords.y
 			);
 			if (insertAt === undefined) {
-				setDraggingNode(false);
+				dndActions.endDrag();
 				return;
 			}
 			dispatch({
 				kind: "moveNode",
-				nodeId: draggingNode.treeNodeId,
+				nodeId: currentlyDragging.treeNodeId,
 				insertionPosition: insertAt,
 			});
-			setDraggingNode(false);
+			dndActions.endDrag();
 		} else {
 			// we are (de)selecting a node
 			if (n === undefined) {
@@ -145,16 +146,23 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 	};
 
 	const onMouseDown = (e: MouseEvent) => {
-		console.log("mouse down");
 		const mouseCoords = mouseCoordsToCanvasSpace(e);
 		const n = getLayoutNodeAt(state.layouts, mouseCoords.x, mouseCoords.y);
 		if (n === undefined) {
 			dispatch({ kind: "deselectNode" });
-			setDraggingNode(false);
 			return;
 		}
 		dispatch({ kind: "selectNode", nodeId: n.node.treeNodeId });
-		setDraggingNode(n.node);
+		dndActions.startDrag(n.node);
+	};
+
+	const onMouseMove = (e: MouseEvent) => {
+		const mouseCoords = mouseCoordsToCanvasSpace(e);
+		if (e.buttons & 1) {
+			dndActions.movedOver(
+				getLayoutNodeAt(state.layouts, mouseCoords.x, mouseCoords.y)?.node
+			);
+		}
 	};
 
 	const [selectedLayoutNode, selectedLayoutNodeLayout] = useLayoutNodeHandle(
@@ -183,6 +191,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			class={styles.diagram}
 			onMouseUp={onMouseUp}
 			onMouseDown={onMouseDown}
+			onMouseMove={onMouseMove}
 			ref={diagramRef}
 		>
 			{selectedLayoutNode !== undefined && (
@@ -199,13 +208,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 					onInput={handleOverlayInput}
 				/>
 			)}
-			<ResizableCanvas
-				onMouseUp={onMouseUp}
-				onMouseDown={onMouseDown}
-				// onDragStart={onDragStart}
-				// onMouseMove={onMouseMove}
-				draw={draw}
-			></ResizableCanvas>
+			<ResizableCanvas draw={draw}></ResizableCanvas>
 		</div>
 	);
 };
