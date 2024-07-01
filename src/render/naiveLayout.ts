@@ -23,8 +23,8 @@ export class NaiveLayout implements LayoutAlgorithm {
 		return {
 			width: width,
 			height: 0, // TODO: calculate,
-			entryX: width / 2.0,
-			entryY: TRACK_HEIGHT,
+			entryX: 0,
+			entryY: 0,
 			root: lt,
 			query: buildLayoutNodeQueryStructure(lt),
 		};
@@ -56,7 +56,7 @@ const layout = (
 		height: labelMetrics.height,
 		children: [],
 	};
-	if (current.id === stubId) return { ...l, label: "" };
+	if (current.id === stubId) return { ...l, treeNodeId: "stub", label: "" };
 	let childrenWidth = calculateChildrenWidth(ctx, current.children);
 	let edge = -childrenWidth / 2.0;
 	for (let child of current.children) {

@@ -1,7 +1,12 @@
 import { FunctionalComponent, JSX } from "preact";
 import { TreeNode } from "../tree/treeNode";
 import { ResizableCanvas } from "./ResizableCanvas";
-import { LABEL_PADDING, RenderingContext2D, renderLayout } from "./render";
+import {
+	LABEL_PADDING,
+	RenderingContext2D,
+	renderLayout,
+	TRACK_HEIGHT,
+} from "./render";
 import {
 	Layout,
 	LayoutAlgorithm,
@@ -55,7 +60,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		let s: DiagramState = {
 			layouts: [],
 		};
-		let edge = 24.0;
+		let edge = 36.0;
 		for (const tree of trees) {
 			if (tree === undefined) continue; // !
 			const layout = algo.doLayout(
@@ -65,9 +70,10 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			);
 			s.layouts.push({
 				...layout,
-				entryX: edge + layout.entryX,
+				entryX: edge + layout.width / 2.0,
+				entryY: TRACK_HEIGHT,
 			});
-			edge += layout.width + 24.0;
+			edge += layout.width + 36.0;
 		}
 		return s;
 	}, [trees, draggingNode]);
