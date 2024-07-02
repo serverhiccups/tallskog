@@ -17,7 +17,7 @@ export interface DynamicForest {
 export type DynamicForestAction =
 	| { kind: "deleteNode"; nodeId: string }
 	| { kind: "updateDiagramText"; text: string }
-	| { kind: "updateLabelText"; rootId: string; nodeId: string; text: string }
+	| { kind: "updateLabelText"; nodeId: string; text: string }
 	| { kind: "selectNode"; nodeId: string }
 	| { kind: "deselectNode" }
 	| {
@@ -25,7 +25,9 @@ export type DynamicForestAction =
 			nodeId: string;
 			insertionPosition: TreeInsertionPosition;
 	  }
-	| { kind: "makeSibling"; nodeId: string };
+	| { kind: "makeLeftSibling" }
+	| { kind: "makeRightSibling" }
+	| { kind: "makeChild" };
 
 export const dynamicForestReducer = (
 	state: DynamicForest,
@@ -66,7 +68,10 @@ export const dynamicForestReducer = (
 			};
 		}
 		case "updateLabelText": {
-			const newRoots = doOnRoot(state.roots, action.rootId, (r) =>
+			const node = findNodeById(state.roots, action.nodeId);
+			if (node === undefined) return state;
+			const root = rootOf(node);
+			const newRoots = doOnRoot(state.roots, root.id, (r) =>
 				updateLabel(r, action.nodeId, action.text)
 			);
 			return {
@@ -117,24 +122,48 @@ export const dynamicForestReducer = (
 						: findNodeById(withInsertion, state.selectedNode.id),
 			};
 		}
-		case "makeSibling": {
-			const node = findNodeById(state.roots, action.nodeId);
-			if (node === undefined) return state;
-			const root = rootOf(node);
-			const p = node.parent;
-			if (p === undefined) return state;
+		case "makeRightSibling":
+		case "makeLeftSibling": {
+			if (state.selectedNode == undefined) return state;
+			const parent = state.selectedNode.parent;
+			if (parent === undefined) return state;
+			const root = rootOf(state.selectedNode);
+			const newSibling = createTreeNode("∅", undefined, []);
 			const inserted = doOnRoot(state.roots, root.id, (r) =>
-				insertNode(r, createTreeNode("sibling", undefined, undefined), {
-					parent: p.id,
-					index: 1,
+				insertNode(r, newSibling, {
+					parent: parent.id,
+					index:
+						parent.children.findIndex((c) => c.id === state.selectedNode?.id) +
+						(action.kind == "makeRightSibling" ? 1 : 0),
 				})
 			);
 			return {
 				...state,
 				diagramText: unparse(inserted),
 				roots: inserted,
-				selectedNode: undefined,
+				selectedNode: findNodeById(inserted, newSibling.id),
 			};
+		}
+		case "makeChild": {
+			if (state.selectedNode === undefined) return state;
+			const node = state.selectedNode;
+			const root = rootOf(node);
+			const newChild = createTreeNode("∅", undefined, []);
+			const inserted = doOnRoot(state.roots, root.id, (r) =>
+				insertNode(r, newChild, {
+					parent: node.id,
+					index: node.children.length,
+				})
+			);
+			return {
+				...state,
+				diagramText: unparse(inserted),
+				roots: inserted,
+				selectedNode: findNodeById(inserted, newChild.id),
+			};
+		}
+		default: {
+			return state;
 		}
 	}
 };

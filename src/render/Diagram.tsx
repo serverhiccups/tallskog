@@ -144,7 +144,6 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 				nodeId: currentlyDragging.treeNodeId,
 				insertionPosition: insertAt,
 			});
-			dndActions.endDrag();
 		} else {
 			// we are (de)selecting a node
 			if (n === undefined) {
@@ -154,6 +153,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			}
 			dispatch({ kind: "selectNode", nodeId: n.node.treeNodeId });
 		}
+		dndActions.endDrag();
 	};
 
 	const onMouseDown = (e: MouseEvent) => {
@@ -181,7 +181,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 				getLayoutNodeAt(layouts, mouseCoords.x, mouseCoords.y)?.node,
 				insertAt
 			);
-		}
+		} else dndActions.endDrag();
 	};
 
 	const [selectedLayoutNode, selectedLayoutNodeLayout] = useLayoutNodeHandle(
@@ -189,20 +189,6 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		selectedNode?.id
 	);
 	// coordinated in canvas space
-	const handleOverlayInput: JSX.InputEventHandler<HTMLInputElement> = (
-		e
-	): void => {
-		if (e.target instanceof HTMLInputElement) {
-			if (selectedNode === undefined || selectedLayoutNode === undefined)
-				return;
-			dispatch({
-				kind: "updateLabelText",
-				rootId: selectedLayoutNode.rootTreeNodeId,
-				nodeId: selectedLayoutNode.treeNodeId,
-				text: e.target.value,
-			});
-		}
-	};
 
 	return (
 		<div
@@ -215,16 +201,17 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		>
 			{selectedLayoutNode !== undefined && (
 				<InputOverlay
+					id={selectedLayoutNode.treeNodeId}
 					x={selectedLayoutNode.absoluteX + selectedLayoutNodeLayout.entryX}
 					y={selectedLayoutNode.absoluteY + selectedLayoutNodeLayout.entryY}
 					width={selectedLayoutNode.width}
-					height={selectedLayoutNode.height + LABEL_PADDING}
+					height={selectedLayoutNode.height}
+					dispatch={dispatch}
 					text={
 						selectedLayoutNode.label !== undefined
 							? selectedLayoutNode.label
 							: ""
 					}
-					onInput={handleOverlayInput}
 				/>
 			)}
 			<ResizableCanvas draw={draw}></ResizableCanvas>

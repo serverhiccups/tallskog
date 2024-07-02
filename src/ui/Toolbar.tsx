@@ -24,14 +24,6 @@ export const Toolbar: FunctionalComponent<ToolbarProps> = ({
 			>
 				Delete
 			</span>
-			<span
-				onClick={() => {
-					if (selectedNode === undefined) return;
-					dispatch({ kind: "makeSibling", nodeId: selectedNode.id });
-				}}
-			>
-				Make Sibling
-			</span>
 		</div>
 	);
 };
