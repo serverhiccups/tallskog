@@ -141,9 +141,9 @@ export const getInsertionPosition = (
 	const insertOnRight: boolean =
 		closestNode.absoluteX + closestLayout.entryX < x;
 	if (closestNode.parent === undefined) return undefined; // Cannot insert next to the root
-	const index = closestNode.parent.children.findIndex(
-		(c) => c.treeNodeId == closestNode.treeNodeId
-	);
+	const index = closestNode.parent.children
+		.filter((c) => c.treeNodeId !== "stub")
+		.findIndex((c) => c.treeNodeId == closestNode.treeNodeId);
 	if (index == -1) return undefined;
 	return {
 		parent: closestNode.parent.treeNodeId,
