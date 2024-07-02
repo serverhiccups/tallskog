@@ -42,14 +42,13 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
         left: ${x - width / 2.0}px;
     `;
 
+	const dragBlocker = {
+		onMouseDown: (e: MouseEvent) => e.stopPropagation(),
+		onMouseUp: (e: MouseEvent) => e.stopPropagation(),
+	};
+
 	return (
-		<div
-			id="overlay"
-			class={styles.overlay}
-			style={positionOverlayStyle}
-			onMouseDown={(e) => e.stopPropagation()}
-			onMouseUp={(e) => e.stopPropagation()}
-		>
+		<div id="overlay" class={styles.overlay} style={positionOverlayStyle}>
 			<input
 				type="text"
 				class={styles.overlayinput}
@@ -66,6 +65,7 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 				top: calc(1rem - 0.5rem);
 				left: calc(-1rem - 0.25rem);
 				`}
+				{...dragBlocker}
 				onClick={() => dispatch({ kind: "makeLeftSibling" })}
 			>
 				+
@@ -78,6 +78,7 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 				top: calc(1rem - 0.5rem);
 				left: calc(${width}px + 0.25rem);
 				`}
+				{...dragBlocker}
 				onClick={() => dispatch({ kind: "makeRightSibling" })}
 			>
 				+
@@ -91,6 +92,7 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 				top: calc(2rem + 0.25rem);
 				left: calc(${width / 2.0}px - 1rem);
 				`}
+				{...dragBlocker}
 				onClick={() => dispatch({ kind: "makeChild" })}
 			>
 				+

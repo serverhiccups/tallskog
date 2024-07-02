@@ -19,7 +19,10 @@ yarn dev
 
 ## To-do
 
-- Adding nodes via GUI
+- Keyboard shortcut
+- Undo/redo
+- Arrows
+- Features
 
 ## Licence
 
