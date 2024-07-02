@@ -52,15 +52,18 @@ const renderLayoutNode = (
 	y: number
 ): void => {
 	if (root.highlighted) {
-		ctx.fillStyle = "rgba(255, 0, 100, 0.5)";
-		ctx.fillRect(
+		ctx.fillStyle = "rgb(0 0 0 / 0.15)";
+		ctx.beginPath();
+		ctx.roundRect(
 			x - root.width / 2.0,
-			y - root.height - LABEL_PADDING / 2.0,
+			y - root.height - LABEL_PADDING / 4.0,
 			root.width,
-			root.height + LABEL_PADDING
+			root.height + LABEL_PADDING,
+			LABEL_PADDING / 2.0
 		);
-		ctx.fillStyle = "black";
+		ctx.fill();
 	}
+	ctx.fillStyle = "black";
 	ctx.fillText(root.label, x, y);
 	for (let child of root.children) {
 		lineBetween(ctx, x, y + 8.0, x + child.x, y + child.y - 24.0);

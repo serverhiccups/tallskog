@@ -29,10 +29,6 @@ const setCanvasProperties = (ctx: RenderingContext2D): void => {
 	ctx.font = "24px serif"; // Must specify in px because rem is broken in OffscreenCanvas
 };
 
-interface DiagramState {
-	layouts: Layout[];
-}
-
 interface DiagramProps {
 	trees: (TreeNode | undefined)[];
 	selectedNode: TreeNode | undefined;
@@ -53,16 +49,14 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		}, []);
 
 	// const [draggingNode, setDraggingNode] = useState<LayoutNode | false>(false);
-	const [currentlyDragging, dndActions] = useDndState();
+	const [currentlyDragging, dropTargetId, dndActions] = useDndState();
 
 	const algo: LayoutAlgorithm = new NaiveLayout();
 
-	const state: DiagramState = useMemo(() => {
-		if (!offscreenCtx) return { layouts: [] }; // !
+	const layouts: Layout[] = useMemo(() => {
+		if (!offscreenCtx) return []; // !
 		setCanvasProperties(offscreenCtx);
-		let s: DiagramState = {
-			layouts: [],
-		};
+		let layouts: Layout[] = [];
 		let edge = 36.0;
 		for (const tree of trees) {
 			if (tree === undefined) continue; // !
@@ -70,18 +64,17 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 				offscreenCtx,
 				tree,
 				currentlyDragging?.treeNodeId,
-				// selectedNode ? [selectedNode.id] : []
-				[]
+				dropTargetId ? [dropTargetId] : []
 			);
-			s.layouts.push({
+			layouts.push({
 				...layout,
 				entryX: edge + layout.width / 2.0,
 				entryY: TRACK_HEIGHT,
 			});
 			edge += layout.width + 36.0;
 		}
-		return s;
-	}, [trees, currentlyDragging, selectedNode]);
+		return layouts;
+	}, [trees, currentlyDragging, dropTargetId]);
 
 	const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({
 		x: 0,
@@ -101,7 +94,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 	}, [currentlyDragging, mousePosition]);
 
 	const draw = (ctx: CanvasRenderingContext2D) => {
-		if (!state) return;
+		if (!layouts) return;
 		// Show tracks
 		// ctx.fillStyle = "#333";
 		// for (let i = TRACK_HEIGHT; i < height; i += TRACK_HEIGHT) {
@@ -109,7 +102,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		// }
 		// Set up canvas
 		setCanvasProperties(ctx);
-		for (const la of state.layouts) {
+		for (const la of layouts) {
 			renderLayout(ctx, la);
 		}
 		if (draggingPreview !== undefined) {
@@ -134,11 +127,11 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 	const onMouseUp = (event: MouseEvent) => {
 		const mouseCoords = mouseCoordsToCanvasSpace(event);
 		// Find the layout node we clicked on
-		const n = getLayoutNodeAt(state.layouts, mouseCoords.x, mouseCoords.y);
+		const n = getLayoutNodeAt(layouts, mouseCoords.x, mouseCoords.y);
 		if (currentlyDragging) {
 			// we are dropping a tree
 			const insertAt = getInsertionPosition(
-				state.layouts,
+				layouts,
 				mouseCoords.x,
 				mouseCoords.y
 			);
@@ -164,8 +157,9 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 	};
 
 	const onMouseDown = (e: MouseEvent) => {
+		console.log("mousedown");
 		const mouseCoords = mouseCoordsToCanvasSpace(e);
-		const n = getLayoutNodeAt(state.layouts, mouseCoords.x, mouseCoords.y);
+		const n = getLayoutNodeAt(layouts, mouseCoords.x, mouseCoords.y);
 		if (n === undefined) {
 			dispatch({ kind: "deselectNode" });
 			return;
@@ -178,14 +172,20 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		const mouseCoords = mouseCoordsToCanvasSpace(e);
 		setMousePosition(mouseCoords);
 		if (e.buttons & 1) {
+			const insertAt = getInsertionPosition(
+				layouts,
+				mouseCoords.x,
+				mouseCoords.y
+			);
 			dndActions.movedOver(
-				getLayoutNodeAt(state.layouts, mouseCoords.x, mouseCoords.y)?.node
+				getLayoutNodeAt(layouts, mouseCoords.x, mouseCoords.y)?.node,
+				insertAt
 			);
 		}
 	};
 
 	const [selectedLayoutNode, selectedLayoutNodeLayout] = useLayoutNodeHandle(
-		state.layouts,
+		layouts,
 		selectedNode?.id
 	);
 	// coordinated in canvas space
