@@ -1,6 +1,6 @@
 import { FunctionalComponent, JSX } from "preact";
 import styles from "./inputoverlay.module.scss";
-import { LABEL_PADDING } from "./render";
+import { LABEL_PADDING } from "../render/render";
 import { DynamicForestAction } from "../tree/dynamicForest";
 import { Dispatch } from "preact/hooks";
 

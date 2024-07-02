@@ -1,4 +1,4 @@
-import { Diagram } from "./render/Diagram";
+import { Diagram } from "./diagram/Diagram";
 import styles from "./app.module.scss";
 import { useReducer } from "preact/hooks";
 import { buildInitialState, dynamicForestReducer } from "./tree/dynamicForest";

@@ -1,5 +1,5 @@
 import { useReducer, useMemo } from "preact/hooks";
-import { LayoutNode } from "./layout";
+import { LayoutNode } from "../render/layout";
 import { TreeInsertionPosition } from "../tree/treeNode";
 
 export interface DndState {

@@ -1,12 +1,12 @@
 import { FunctionalComponent, JSX } from "preact";
 import { TreeNode } from "../tree/treeNode";
-import { ResizableCanvas } from "./ResizableCanvas";
+import { ResizableCanvas } from "../render/ResizableCanvas";
 import {
 	LABEL_PADDING,
 	RenderingContext2D,
 	renderLayout,
 	TRACK_HEIGHT,
-} from "./render";
+} from "../render/render";
 import {
 	Layout,
 	LayoutAlgorithm,
@@ -14,8 +14,8 @@ import {
 	getInsertionPosition,
 	getLayoutNodeAt,
 	useLayoutNodeHandle,
-} from "./layout";
-import { NaiveLayout } from "./naiveLayout";
+} from "../render/layout";
+import { NaiveLayout } from "../render/naiveLayout";
 import { Dispatch, useMemo, useRef, useState } from "preact/hooks";
 import { DynamicForestAction } from "../tree/dynamicForest";
 import styles from "./diagram.module.scss";
