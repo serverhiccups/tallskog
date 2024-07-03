@@ -13,16 +13,6 @@ export const renderLayout = (ctx: CanvasRenderingContext2D, layout: Layout) => {
 	renderLayoutNode(ctx, layout.root, layout.entryX, layout.entryY);
 };
 
-const railToY = (rail: number): number => {
-	return TRACK_HEIGHT * (rail + 1);
-};
-
-const centerLine = (ctx: CanvasRenderingContext2D, x: number): void => {
-	ctx.fillStyle = "purple";
-	ctx.fillRect(x - 1, 0, 2, 800);
-	ctx.fillStyle = "black";
-};
-
 const lineBetween = (
 	ctx: CanvasRenderingContext2D,
 	x1: number,
@@ -37,12 +27,24 @@ const lineBetween = (
 	ctx.stroke();
 };
 
+const textBoundsMemo = new Map<string, { width: number; height: number }>();
+
 export const calculateTextBounds = (ctx: RenderingContext2D, text: string) => {
+	if (textBoundsMemo.has(text)) return textBoundsMemo.get(text);
 	let metrics = ctx.measureText(text);
-	return {
+	const res = {
 		width: metrics.width + LABEL_PADDING,
 		height: metrics.emHeightDescent + metrics.emHeightDescent + LABEL_PADDING,
 	};
+	textBoundsMemo.set(text, res);
+	return res;
+};
+
+export const setCanvasProperties = (ctx: RenderingContext2D): void => {
+	ctx.fillStyle = "#000";
+	ctx.textAlign = "center";
+	ctx.lineWidth = 2.0;
+	ctx.font = `24px serif`; // Must specify in px because rem is broken in OffscreenCanvas
 };
 
 const renderLayoutNode = (

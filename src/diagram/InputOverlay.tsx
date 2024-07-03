@@ -2,7 +2,8 @@ import { FunctionalComponent, JSX } from "preact";
 import styles from "./inputoverlay.module.scss";
 import { LABEL_PADDING } from "../render/render";
 import { DynamicForestAction } from "../tree/dynamicForest";
-import { Dispatch } from "preact/hooks";
+import { Dispatch, Ref, useEffect, useRef } from "preact/hooks";
+import { useBrowserType } from "../ui/browser";
 
 type InputOverlayProps = {
 	id: string;
@@ -11,6 +12,8 @@ type InputOverlayProps = {
 	width: number;
 	height: number;
 	text: string;
+	onFocusUpdate: (value: boolean) => void;
+	inputRef: Ref<HTMLInputElement>;
 	dispatch: Dispatch<DynamicForestAction>;
 } & JSX.HTMLAttributes<HTMLInputElement>;
 
@@ -22,8 +25,33 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 	height,
 	text,
 	dispatch,
+	onFocusUpdate,
+	inputRef,
 	...rest
 }) => {
+	onFocusUpdate(inputRef?.current == document.activeElement);
+
+	const handleFocusChange = (e: FocusEvent) => {
+		if (e.target == document.activeElement) {
+			onFocusUpdate(true);
+		} else onFocusUpdate(false);
+	};
+
+	useEffect(() => {
+		if (inputRef.current !== null) {
+			inputRef.current.addEventListener("focus", handleFocusChange);
+			inputRef.current.addEventListener("blur", handleFocusChange);
+		}
+
+		return () => {
+			if (inputRef.current !== null) {
+				inputRef.current.removeEventListener("focus", handleFocusChange);
+				inputRef.current.removeEventListener("blur", handleFocusChange);
+			}
+			onFocusUpdate(false);
+		};
+	});
+
 	const handleOverlayInput: JSX.InputEventHandler<HTMLInputElement> = (
 		e
 	): void => {
@@ -36,11 +64,11 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 		}
 	};
 
-	const positionOverlayStyle = `top: ${
-		y - height - LABEL_PADDING / 2.0 + 0.5
-	}px;
+	const positionOverlayStyle = `top: ${y - height - LABEL_PADDING / 2.0 - 1}px;
         left: ${x - width / 2.0}px;
     `;
+
+	const [browserType] = useBrowserType();
 
 	const dragBlocker = {
 		onMouseDown: (e: MouseEvent) => e.stopPropagation(),
@@ -53,8 +81,10 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 				type="text"
 				class={styles.overlayinput}
 				value={text}
-				style={`width: ${width}px;`}
+				style={`width: ${width}px;
+				${browserType == "firefoxmac" ? "padding-top: 0.5rem;" : ""}`}
 				onInput={handleOverlayInput}
+				ref={inputRef}
 				{...rest}
 			/>
 			<div

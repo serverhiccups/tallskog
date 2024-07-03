@@ -1,33 +1,25 @@
-import { FunctionalComponent, JSX } from "preact";
-import { TreeNode } from "../tree/treeNode";
+import { FunctionalComponent } from "preact";
+import { Dispatch, useMemo, useRef, useState } from "preact/hooks";
 import { ResizableCanvas } from "../render/ResizableCanvas";
 import {
-	LABEL_PADDING,
-	RenderingContext2D,
-	renderLayout,
-	TRACK_HEIGHT,
-} from "../render/render";
-import {
-	Layout,
-	LayoutAlgorithm,
 	buildLayoutNodeQueryStructure,
 	getInsertionPosition,
 	getLayoutNodeAt,
+	Layout,
+	LayoutAlgorithm,
 	useLayoutNodeHandle,
 } from "../render/layout";
 import { NaiveLayout } from "../render/naiveLayout";
-import { Dispatch, useMemo, useRef, useState } from "preact/hooks";
+import {
+	renderLayout,
+	setCanvasProperties,
+	TRACK_HEIGHT,
+} from "../render/render";
 import { DynamicForestAction } from "../tree/dynamicForest";
-import styles from "./diagram.module.scss";
+import { TreeNode } from "../tree/treeNode";
 import { InputOverlay } from "./InputOverlay";
+import styles from "./diagram.module.scss";
 import { useDndState } from "./dndState";
-
-const setCanvasProperties = (ctx: RenderingContext2D): void => {
-	ctx.fillStyle = "#000";
-	ctx.textAlign = "center";
-	ctx.lineWidth = 2.0;
-	ctx.font = "24px serif"; // Must specify in px because rem is broken in OffscreenCanvas
-};
 
 interface DiagramProps {
 	trees: (TreeNode | undefined)[];
@@ -157,7 +149,6 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 	};
 
 	const onMouseDown = (e: MouseEvent) => {
-		console.log("mousedown");
 		const mouseCoords = mouseCoordsToCanvasSpace(e);
 		const n = getLayoutNodeAt(layouts, mouseCoords.x, mouseCoords.y);
 		if (n === undefined) {
@@ -188,7 +179,18 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		layouts,
 		selectedNode?.id
 	);
-	// coordinated in canvas space
+
+	const inputRef = useRef<HTMLInputElement>(null);
+	const [overlayFocused, setOverlayFocused] = useState<boolean>(false);
+
+	const onKeyDown = (e: KeyboardEvent) => {
+		if (e.code === "Backspace" && selectedLayoutNode !== undefined) {
+			if (overlayFocused && selectedLayoutNode.label !== "") return;
+			dispatch({ kind: "deleteNode", nodeId: selectedLayoutNode.treeNodeId });
+		} else if (e.code == "Escape") {
+			dispatch({ kind: "deselectNode" });
+		}
+	};
 
 	return (
 		<div
@@ -197,7 +199,9 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			onMouseUp={onMouseUp}
 			onMouseDown={onMouseDown}
 			onMouseMove={onMouseMove}
+			onKeyDown={onKeyDown}
 			ref={diagramRef}
+			tabIndex={0}
 		>
 			{selectedLayoutNode !== undefined && (
 				<InputOverlay
@@ -207,6 +211,8 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 					width={selectedLayoutNode.width}
 					height={selectedLayoutNode.height}
 					dispatch={dispatch}
+					onFocusUpdate={setOverlayFocused}
+					inputRef={inputRef}
 					text={
 						selectedLayoutNode.label !== undefined
 							? selectedLayoutNode.label
