@@ -40,7 +40,6 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			return ctx;
 		}, []);
 
-	// const [draggingNode, setDraggingNode] = useState<LayoutNode | false>(false);
 	const [currentlyDragging, dropTargetId, dndActions] = useDndState();
 
 	const algo: LayoutAlgorithm = new NaiveLayout();

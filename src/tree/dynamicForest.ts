@@ -21,10 +21,10 @@ export type DynamicForestAction =
 	| { kind: "selectNode"; nodeId: string }
 	| { kind: "deselectNode" }
 	| {
-			kind: "moveNode";
-			nodeId: string;
-			insertionPosition: TreeInsertionPosition;
-	  }
+		kind: "moveNode";
+		nodeId: string;
+		insertionPosition: TreeInsertionPosition;
+	}
 	| { kind: "makeLeftSibling" }
 	| { kind: "makeRightSibling" }
 	| { kind: "makeChild" };
@@ -87,12 +87,14 @@ export const dynamicForestReducer = (
 		}
 		case "selectNode": {
 			const selection = findNodeById(state.roots, action.nodeId);
+			if (selection === undefined) return state;
 			return {
 				...state,
 				selectedNode: selection,
 			};
 		}
 		case "deselectNode": {
+			if (state.selectedNode === undefined) return state;
 			return { ...state, selectedNode: undefined };
 		}
 		case "moveNode": {

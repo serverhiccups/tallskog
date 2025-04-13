@@ -4,8 +4,7 @@ export const useInputFocusState = (): [Ref<HTMLInputElement>, boolean] => {
 	const ref = useRef<HTMLInputElement>(null);
 	const [focusState, setFocusState] = useState<boolean>(false);
 
-	const handleFocusChange = useCallback((e: FocusEvent) => {
-		console.log(`${ref.current} == ${document.activeElement}`);
+	const handleFocusChange = useCallback(() => {
 		if (ref.current == document.activeElement) {
 			setFocusState(true);
 		} else setFocusState(false);

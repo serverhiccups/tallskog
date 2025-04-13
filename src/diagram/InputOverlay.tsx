@@ -2,7 +2,7 @@ import { FunctionalComponent, JSX } from "preact";
 import styles from "./inputoverlay.module.scss";
 import { LABEL_PADDING } from "../render/render";
 import { DynamicForestAction } from "../tree/dynamicForest";
-import { Dispatch, Ref, useEffect, useRef } from "preact/hooks";
+import { Dispatch, Ref, useEffect } from "preact/hooks";
 import { useBrowserType } from "../ui/browser";
 
 type InputOverlayProps = {

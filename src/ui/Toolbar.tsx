@@ -3,14 +3,17 @@ import { Dispatch } from "preact/hooks";
 import { DynamicForestAction } from "../tree/dynamicForest";
 import styles from "./toolbar.module.scss";
 import { TreeNode } from "../tree/treeNode";
+import { UndoAction, UndoState } from "../tree/undo";
 
 type ToolbarProps = {
-	dispatch: Dispatch<DynamicForestAction>;
+	dispatch: Dispatch<DynamicForestAction | UndoAction>;
+	state: UndoState<any>;
 	selectedNode: TreeNode | undefined;
 } & JSX.HTMLAttributes<HTMLDivElement>;
 
 export const Toolbar: FunctionalComponent<ToolbarProps> = ({
 	dispatch,
+	state,
 	selectedNode,
 	...rest
 }) => {
@@ -23,6 +26,22 @@ export const Toolbar: FunctionalComponent<ToolbarProps> = ({
 				}}
 			>
 				Delete
+			</span>
+			<span
+				class={state.past.length == 0 ? styles.disabled : ""}
+				onClick={() => {
+					dispatch("undo");
+				}}
+			>
+				Undo
+			</span>
+			<span
+				class={state.future.length == 0 ? styles.disabled : ""}
+				onClick={() => {
+					dispatch("redo");
+				}}
+			>
+				Redo
 			</span>
 		</div>
 	);
