@@ -1,8 +1,8 @@
-import { FunctionalComponent, JSX } from "preact";
+import { FunctionalComponent, JSX, RefObject } from "preact";
 import styles from "./inputoverlay.module.scss";
 import { LABEL_PADDING } from "../render/render";
 import { DynamicForestAction } from "../tree/dynamicForest";
-import { Dispatch, Ref, useEffect } from "preact/hooks";
+import { Dispatch, useEffect } from "preact/hooks";
 import { useBrowserType } from "../ui/browser";
 
 type InputOverlayProps = {
@@ -13,7 +13,7 @@ type InputOverlayProps = {
 	height: number;
 	text: string;
 	onFocusUpdate: (value: boolean) => void;
-	inputRef: Ref<HTMLInputElement>;
+	inputRef: RefObject<HTMLInputElement>;
 	dispatch: Dispatch<DynamicForestAction>;
 } & JSX.HTMLAttributes<HTMLInputElement>;
 
@@ -29,28 +29,34 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 	inputRef,
 	...rest
 }) => {
-	onFocusUpdate(inputRef?.current == document.activeElement);
-
 	const handleFocusChange = (e: FocusEvent) => {
 		if (e.target == document.activeElement) {
+			console.log("focusing");
 			onFocusUpdate(true);
-		} else onFocusUpdate(false);
+		} else {
+			console.log("defocusing");
+			onFocusUpdate(false);
+		}
 	};
 
 	useEffect(() => {
+		onFocusUpdate(inputRef.current == document.activeElement);
+
 		if (inputRef.current !== null) {
 			inputRef.current.addEventListener("focus", handleFocusChange);
 			inputRef.current.addEventListener("blur", handleFocusChange);
 		}
 
 		return () => {
+			console.log("deeffecting");
 			if (inputRef.current !== null) {
+				console.log("removed listeners");
 				inputRef.current.removeEventListener("focus", handleFocusChange);
 				inputRef.current.removeEventListener("blur", handleFocusChange);
 			}
 			onFocusUpdate(false);
 		};
-	});
+	}, []);
 
 	const handleOverlayInput: JSX.InputEventHandler<HTMLInputElement> = (
 		e

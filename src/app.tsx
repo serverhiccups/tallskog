@@ -23,7 +23,6 @@ export const App = () => {
 			<div id="ast" class={styles.texteditor}>
 				<TextEditor
 					value={state.present.diagramText}
-					placeholder={"Hello"}
 					onUpdate={(v: string) => {
 						dispatch({ kind: "updateDiagramText", text: v });
 					}}

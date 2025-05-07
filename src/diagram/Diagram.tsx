@@ -1,5 +1,5 @@
-import { FunctionalComponent } from "preact";
-import { Dispatch, useMemo, useRef, useState } from "preact/hooks";
+import { FunctionalComponent, createRef } from "preact";
+import { Dispatch, useMemo, useState } from "preact/hooks";
 import { ResizableCanvas } from "../render/ResizableCanvas";
 import {
 	buildLayoutNodeQueryStructure,
@@ -87,7 +87,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		}
 	};
 
-	const diagramRef = useRef<HTMLDivElement>(null);
+	const diagramRef = createRef<HTMLDivElement>();
 	const mouseCoordsToCanvasSpace = (
 		e: MouseEvent
 	): { x: number; y: number } => {
@@ -165,11 +165,12 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		selectedNode
 	);
 
-	const inputRef = useRef<HTMLInputElement>(null);
+	const inputRef = createRef<HTMLInputElement>();
 	const [overlayFocused, setOverlayFocused] = useState<boolean>(false);
 
 	const onKeyDown = (e: KeyboardEvent) => {
 		if (e.code === "Backspace" && selectedLayoutNode !== undefined) {
+			// debugger;
 			if (overlayFocused && selectedLayoutNode.label !== "") return;
 			dispatch({ kind: "deleteNode", nodeId: selectedLayoutNode.nodeId });
 		} else if (e.code == "Escape") {
