@@ -1,8 +1,13 @@
 import { useMemo } from "preact/hooks";
-import { TreeInsertionPosition, TreeNode } from "../tree/treeNode";
 import { LABEL_PADDING, RenderingContext2D } from "./render";
+import { Forest, NodeId, TreeInsertionPosition } from "../tree/forest";
 
 export interface Layout {
+	trees: LayoutTree[];
+	// arrows: ??
+}
+
+export interface LayoutTree {
 	width: number;
 	height: number;
 	entryX: number;
@@ -12,9 +17,9 @@ export interface Layout {
 }
 
 export interface LayoutAlgorithm {
-	doLayout(
+	layoutForest(
 		ctx: RenderingContext2D,
-		tree: TreeNode,
+		forest: Forest,
 		stubId: string | undefined,
 		highlighted: string[]
 	): Layout;
@@ -23,8 +28,8 @@ export interface LayoutAlgorithm {
 export interface LayoutNode {
 	label: string;
 	highlighted: boolean;
-	treeNodeId: string;
-	rootTreeNodeId: string;
+	nodeId: NodeId;
+	rootNodeId: NodeId;
 	parent: LayoutNode | undefined;
 	x: number;
 	y: number;
@@ -67,13 +72,13 @@ const isPointInsideLayoutNode = (
 };
 
 export const getLayoutNodeAt = (
-	layouts: Layout[],
+	layout: Layout,
 	x: number,
 	y: number
-): { node: LayoutNode; root: Layout } | undefined => {
+): { node: LayoutNode; root: LayoutTree } | undefined => {
 	if (x < 24.0) return;
 	//TODO: very bad code, refactor
-	for (const l of layouts) {
+	for (const l of layout.trees) {
 		const localX = x - l.entryX;
 		const localY = y - l.entryY;
 
@@ -93,34 +98,34 @@ export const getLayoutNodeAt = (
 };
 
 export const useLayoutNodeHandle = (
-	layouts: Layout[],
+	layout: Layout,
 	treeNodeId: string | undefined
-): [LayoutNode, Layout] | [undefined, undefined] => {
+): [LayoutNode, LayoutTree] | [undefined, undefined] => {
 	return useMemo(() => {
 		if (treeNodeId === undefined) return [undefined, undefined];
-		for (const l of layouts) {
-			const res = l.query.nodes.find((n) => n.treeNodeId == treeNodeId);
+		for (const l of layout.trees) {
+			const res = l.query.nodes.find((n) => n.nodeId == treeNodeId);
 			if (res !== undefined) return [res, l];
 		}
 		return [undefined, undefined];
-	}, [layouts, treeNodeId]);
+	}, [layout, treeNodeId]);
 };
 
 export const getInsertionPosition = (
-	layouts: Layout[],
+	layout: Layout,
 	x: number,
 	y: number
 ): TreeInsertionPosition | undefined => {
-	const closestLayout = layouts.reduce((a, b) =>
+	const closestLayout = layout.trees.reduce((a, b) =>
 		Math.abs(a.entryX - x) < Math.abs(b.entryX - x) ? a : b
 	);
 	const nodesInBand = closestLayout.query.nodes
 		.filter((n) => Math.abs(n.absoluteY + closestLayout.entryY - y) < 20)
-		.filter((n) => n.treeNodeId !== "stub");
+		.filter((n) => n.nodeId !== "stub");
 	if (nodesInBand.length == 0) return undefined;
 	const closestNode = nodesInBand.reduce((a, b) =>
 		Math.abs(a.absoluteX + closestLayout.entryX - x) <
-		Math.abs(b.absoluteX + closestLayout.entryX - x)
+			Math.abs(b.absoluteX + closestLayout.entryX - x)
 			? a
 			: b
 	);
@@ -134,7 +139,7 @@ export const getInsertionPosition = (
 		)
 	) {
 		return {
-			parent: closestNode.treeNodeId,
+			parent: closestNode.nodeId,
 			index: 0,
 		};
 	}
@@ -142,11 +147,11 @@ export const getInsertionPosition = (
 		closestNode.absoluteX + closestLayout.entryX < x;
 	if (closestNode.parent === undefined) return undefined; // Cannot insert next to the root
 	const index = closestNode.parent.children
-		.filter((c) => c.treeNodeId !== "stub")
-		.findIndex((c) => c.treeNodeId == closestNode.treeNodeId);
+		.filter((c) => c.nodeId !== "stub")
+		.findIndex((c) => c.nodeId == closestNode.nodeId);
 	if (index == -1) return undefined;
 	return {
-		parent: closestNode.parent.treeNodeId,
+		parent: closestNode.parent.nodeId,
 		index: index + (insertOnRight ? 1 : 0),
 	};
 };

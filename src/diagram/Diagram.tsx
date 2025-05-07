@@ -5,30 +5,27 @@ import {
 	buildLayoutNodeQueryStructure,
 	getInsertionPosition,
 	getLayoutNodeAt,
-	Layout,
+	LayoutTree,
 	LayoutAlgorithm,
 	useLayoutNodeHandle,
+	Layout,
 } from "../render/layout";
 import { NaiveLayout } from "../render/naiveLayout";
-import {
-	renderLayout,
-	setCanvasProperties,
-	TRACK_HEIGHT,
-} from "../render/render";
+import { renderLayout, setCanvasProperties } from "../render/render";
 import { DynamicForestAction } from "../tree/dynamicForest";
-import { TreeNode } from "../tree/treeNode";
 import { InputOverlay } from "./InputOverlay";
 import styles from "./diagram.module.scss";
 import { useDndState } from "./dndState";
+import { Forest, NodeId } from "../tree/forest";
 
 interface DiagramProps {
-	trees: (TreeNode | undefined)[];
-	selectedNode: TreeNode | undefined;
+	forest: Forest;
+	selectedNode?: NodeId;
 	dispatch: Dispatch<DynamicForestAction>;
 }
 
 export const Diagram: FunctionalComponent<DiagramProps> = ({
-	trees,
+	forest,
 	selectedNode,
 	dispatch,
 }) => {
@@ -44,35 +41,24 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 
 	const algo: LayoutAlgorithm = new NaiveLayout();
 
-	const layouts: Layout[] = useMemo(() => {
-		if (!offscreenCtx) return []; // !
+	const layout: Layout = useMemo(() => {
+		if (forest === undefined) return { trees: [] };
+		if (!offscreenCtx) return { trees: [] };
 		setCanvasProperties(offscreenCtx);
-		let layouts: Layout[] = [];
-		let edge = 36.0;
-		for (const tree of trees) {
-			if (tree === undefined) continue; // !
-			const layout = algo.doLayout(
-				offscreenCtx,
-				tree,
-				currentlyDragging?.treeNodeId,
-				dropTargetId ? [dropTargetId] : []
-			);
-			layouts.push({
-				...layout,
-				entryX: edge + layout.width / 2.0,
-				entryY: TRACK_HEIGHT,
-			});
-			edge += layout.width + 36.0;
-		}
-		return layouts;
-	}, [trees, currentlyDragging, dropTargetId]);
+		return algo.layoutForest(
+			offscreenCtx,
+			forest,
+			currentlyDragging?.nodeId,
+			dropTargetId ? [dropTargetId] : []
+		);
+	}, [forest, currentlyDragging, dropTargetId]);
 
 	const [mousePosition, setMousePosition] = useState<{ x: number; y: number }>({
 		x: 0,
 		y: 0,
 	});
 
-	const draggingPreview: Layout | undefined = useMemo(() => {
+	const draggingPreview: LayoutTree | undefined = useMemo(() => {
 		if (currentlyDragging === undefined) return undefined;
 		return {
 			width: currentlyDragging.width,
@@ -85,7 +71,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 	}, [currentlyDragging, mousePosition]);
 
 	const draw = (ctx: CanvasRenderingContext2D) => {
-		if (!layouts) return;
+		if (!layout) return;
 		// Show tracks
 		// ctx.fillStyle = "#333";
 		// for (let i = TRACK_HEIGHT; i < height; i += TRACK_HEIGHT) {
@@ -93,7 +79,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		// }
 		// Set up canvas
 		setCanvasProperties(ctx);
-		for (const la of layouts) {
+		for (const la of layout.trees) {
 			renderLayout(ctx, la);
 		}
 		if (draggingPreview !== undefined) {
@@ -118,11 +104,11 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 	const onMouseUp = (event: MouseEvent) => {
 		const mouseCoords = mouseCoordsToCanvasSpace(event);
 		// Find the layout node we clicked on
-		const n = getLayoutNodeAt(layouts, mouseCoords.x, mouseCoords.y);
+		const n = getLayoutNodeAt(layout, mouseCoords.x, mouseCoords.y);
 		if (currentlyDragging) {
 			// we are dropping a tree
 			const insertAt = getInsertionPosition(
-				layouts,
+				layout,
 				mouseCoords.x,
 				mouseCoords.y
 			);
@@ -132,7 +118,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 			}
 			dispatch({
 				kind: "moveNode",
-				nodeId: currentlyDragging.treeNodeId,
+				nodeId: currentlyDragging.nodeId,
 				insertionPosition: insertAt,
 			});
 		} else {
@@ -142,19 +128,19 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 				dispatch({ kind: "deselectNode" });
 				return;
 			}
-			dispatch({ kind: "selectNode", nodeId: n.node.treeNodeId });
+			dispatch({ kind: "selectNode", nodeId: n.node.nodeId });
 		}
 		dndActions.endDrag();
 	};
 
 	const onMouseDown = (e: MouseEvent) => {
 		const mouseCoords = mouseCoordsToCanvasSpace(e);
-		const n = getLayoutNodeAt(layouts, mouseCoords.x, mouseCoords.y);
+		const n = getLayoutNodeAt(layout, mouseCoords.x, mouseCoords.y);
 		if (n === undefined) {
 			dispatch({ kind: "deselectNode" });
 			return;
 		}
-		dispatch({ kind: "selectNode", nodeId: n.node.treeNodeId });
+		dispatch({ kind: "selectNode", nodeId: n.node.nodeId });
 		dndActions.startDrag(n.node);
 	};
 
@@ -163,20 +149,20 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		setMousePosition(mouseCoords);
 		if (e.buttons & 1) {
 			const insertAt = getInsertionPosition(
-				layouts,
+				layout,
 				mouseCoords.x,
 				mouseCoords.y
 			);
 			dndActions.movedOver(
-				getLayoutNodeAt(layouts, mouseCoords.x, mouseCoords.y)?.node,
+				getLayoutNodeAt(layout, mouseCoords.x, mouseCoords.y)?.node,
 				insertAt
 			);
 		} else dndActions.endDrag();
 	};
 
 	const [selectedLayoutNode, selectedLayoutNodeLayout] = useLayoutNodeHandle(
-		layouts,
-		selectedNode?.id
+		layout,
+		selectedNode
 	);
 
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -185,7 +171,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 	const onKeyDown = (e: KeyboardEvent) => {
 		if (e.code === "Backspace" && selectedLayoutNode !== undefined) {
 			if (overlayFocused && selectedLayoutNode.label !== "") return;
-			dispatch({ kind: "deleteNode", nodeId: selectedLayoutNode.treeNodeId });
+			dispatch({ kind: "deleteNode", nodeId: selectedLayoutNode.nodeId });
 		} else if (e.code == "Escape") {
 			dispatch({ kind: "deselectNode" });
 		}
@@ -204,7 +190,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		>
 			{selectedLayoutNode !== undefined && (
 				<InputOverlay
-					id={selectedLayoutNode.treeNodeId}
+					id={selectedLayoutNode.nodeId}
 					x={selectedLayoutNode.absoluteX + selectedLayoutNodeLayout.entryX}
 					y={selectedLayoutNode.absoluteY + selectedLayoutNodeLayout.entryY}
 					width={selectedLayoutNode.width}

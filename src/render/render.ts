@@ -1,4 +1,4 @@
-import { Layout, LayoutNode } from "./layout";
+import { LayoutTree, LayoutNode } from "./layout";
 
 export const TRACK_HEIGHT: number = 72.0;
 export const CHILD_PADDING: number = 16.0;
@@ -8,7 +8,7 @@ export type RenderingContext2D =
 	| CanvasRenderingContext2D
 	| OffscreenCanvasRenderingContext2D;
 
-export const renderLayout = (ctx: CanvasRenderingContext2D, layout: Layout) => {
+export const renderLayout = (ctx: CanvasRenderingContext2D, layout: LayoutTree) => {
 	// Drawing
 	renderLayoutNode(ctx, layout.root, layout.entryX, layout.entryY);
 };
@@ -27,12 +27,14 @@ const lineBetween = (
 	ctx.stroke();
 };
 
-const textBoundsMemo = new Map<string, { width: number; height: number }>();
+type TextBounds = { width: number; height: number; };
 
-export const calculateTextBounds = (ctx: RenderingContext2D, text: string) => {
-	if (textBoundsMemo.has(text)) return textBoundsMemo.get(text);
+const textBoundsMemo = new Map<string, TextBounds>();
+
+export const calculateTextBounds = (ctx: RenderingContext2D, text: string): TextBounds => {
+	if (textBoundsMemo.has(text)) return textBoundsMemo.get(text) as TextBounds;
 	let metrics = ctx.measureText(text);
-	const res = {
+	const res: TextBounds = {
 		width: metrics.width + LABEL_PADDING,
 		height: metrics.emHeightDescent + metrics.emHeightDescent + LABEL_PADDING,
 	};

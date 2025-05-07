@@ -20,9 +20,9 @@ yarn dev
 ## To-do
 
 - Keyboard shortcut
-- Undo/redo
-- Arrows
 - Features
+- template system
+- copy and paste
 
 ## Licence
 

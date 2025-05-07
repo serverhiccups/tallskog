@@ -1,6 +1,6 @@
 import { useReducer, useMemo } from "preact/hooks";
 import { LayoutNode } from "../render/layout";
-import { TreeInsertionPosition } from "../tree/treeNode";
+import { TreeInsertionPosition } from "../tree/forest";
 
 export interface DndState {
 	draggingNode: LayoutNode | undefined;
@@ -11,10 +11,10 @@ export interface DndState {
 export type DndAction =
 	| { kind: "startDrag"; node: LayoutNode }
 	| {
-			kind: "movedOver";
-			node: LayoutNode | undefined;
-			dropTarget: string | undefined;
-	  }
+		kind: "movedOver";
+		node: LayoutNode | undefined;
+		dropTarget: string | undefined;
+	}
 	| { kind: "endDrag" };
 
 export const DndReducer = (state: DndState, action: DndAction): DndState => {
@@ -39,7 +39,7 @@ export const DndReducer = (state: DndState, action: DndAction): DndState => {
 				...state,
 				validDragStarted: state.validDragStarted
 					? true
-					: action.node?.treeNodeId !== state.draggingNode.treeNodeId,
+					: action.node?.nodeId !== state.draggingNode.nodeId,
 				dropTargetId: action.dropTarget,
 			};
 		}

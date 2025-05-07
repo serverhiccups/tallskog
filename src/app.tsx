@@ -39,7 +39,7 @@ export const App = () => {
 			</div>
 			<div id="diagram" class={styles.diagram}>
 				<Diagram
-					trees={state.present.roots}
+					forest={state.present.forest}
 					selectedNode={state.present.selectedNode}
 					dispatch={dispatch}
 				></Diagram>
