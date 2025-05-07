@@ -1,48 +1,25 @@
-import { Diagram } from "./diagram/Diagram";
+import { Editor } from "./pages/Editor";
+import { Link, Route, Switch } from "wouter-preact";
 import styles from "./app.module.scss";
-import { useReducer } from "preact/hooks";
-import { buildInitialState, dynamicForestReducer } from "./tree/dynamicForest";
-import { TextEditor } from "./ui/TextEditor";
-import { Toolbar } from "./ui/Toolbar";
-import { makeUndoable } from "./tree/undo";
+import { Home } from "./pages/Home";
 
 export const App = () => {
-	const startingText = `["Hello" ["A" ["C"]["D"]]["B"]]
-["Tree" ["Number"]["2"]]`;
-
-	const [state, dispatch] = useReducer(makeUndoable(dynamicForestReducer), {
-		past: [],
-		future: [],
-		present: buildInitialState(startingText),
-		lastUpdateTime: 0,
-	});
-
 	return (
 		<div id="app" class={styles.app}>
-			<nav class={styles.nav}>Tallskog</nav>
-			<div id="ast" class={styles.texteditor}>
-				<TextEditor
-					value={state.present.diagramText}
-					onUpdate={(v: string) => {
-						dispatch({ kind: "updateDiagramText", text: v });
-					}}
-					isError={state.present.textError}
-				/>
-			</div>
-			<div id="toolbar" class={styles.toolbar}>
-				<Toolbar
-					selectedNode={state.present.selectedNode}
-					state={state}
-					dispatch={dispatch}
-				/>
-			</div>
-			<div id="diagram" class={styles.diagram}>
-				<Diagram
-					forest={state.present.forest}
-					selectedNode={state.present.selectedNode}
-					dispatch={dispatch}
-				></Diagram>
-			</div>
+			<nav class={styles.nav}>
+				<Link href="/">Tallskog</Link>
+				<Link href="/editor">Editor</Link>
+			</nav>
+			<Switch>
+				<Route path="/editor">
+					<Editor />
+				</Route>
+
+				{/* Default Route */}
+				<Route>
+					<Home />
+				</Route>
+			</Switch>
 		</div>
 	);
 };
