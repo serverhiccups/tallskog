@@ -18,6 +18,8 @@ export const Toolbar: FunctionalComponent<ToolbarProps> = ({
 }) => {
 	return (
 		<div class={styles.toolbar} {...rest}>
+			<span>Save</span>
+			<span>Load</span>
 			<span
 				onClick={() => {
 					if (selectedNode === undefined) return;

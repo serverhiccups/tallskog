@@ -1,7 +1,8 @@
-import { Ref, useCallback, useEffect, useRef, useState } from "preact/hooks";
+import { createRef, RefObject } from "preact"
+import { useCallback, useEffect, useState } from "preact/hooks";
 
-export const useInputFocusState = (): [Ref<HTMLInputElement>, boolean] => {
-	const ref = useRef<HTMLInputElement>(null);
+export const useInputFocusState = (): [RefObject<HTMLInputElement>, boolean] => {
+	const ref = createRef<HTMLInputElement>();
 	const [focusState, setFocusState] = useState<boolean>(false);
 
 	const handleFocusChange = useCallback(() => {
@@ -18,6 +19,7 @@ export const useInputFocusState = (): [Ref<HTMLInputElement>, boolean] => {
 			inputElement.addEventListener("blur", handleFocusChange);
 			setFocusState(ref.current === document.activeElement);
 		}
+
 
 		return () => {
 			if (inputElement !== null) {
