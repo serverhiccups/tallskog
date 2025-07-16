@@ -1,10 +1,10 @@
 export type Forest = {
     trees: Tree[];
-    // arrows: TArrow[];
+    arrows: TArrow[];
 }
 
 export function makeForest(): Forest {
-    return { trees: [] };
+    return { trees: [], arrows: [] };
 }
 
 
@@ -27,10 +27,17 @@ export type TNode = {
     id: NodeId;
     parent?: NodeId;
     label: string;
-    children: NodeId[]
+    children: NodeId[];
+    numericalLabel?: number;
 };
-export function makeTNode(label: string, parent?: NodeId, children: NodeId[] = [], id: NodeId = crypto.randomUUID()) {
-    return { label, parent, children, id };
+export function makeTNode(
+    label: string,
+    parent?: NodeId,
+    children: NodeId[] = [],
+    numericalLabel?: number,
+    id: NodeId = crypto.randomUUID()
+) {
+    return { label, parent, children, id, numericalLabel };
 }
 
 export type TreeInsertionPosition = {
@@ -38,11 +45,11 @@ export type TreeInsertionPosition = {
     index: number;
 };
 
-// type TArrow = {
-//     label: string;
-//     start: NodeId;
-//     end: NodeId;
-// }
+export type TArrow = {
+    label: string;
+    start: NodeId;
+    end: NodeId;
+}
 
 function clone(f: Forest): Forest {
     return structuredClone(f);
@@ -95,9 +102,11 @@ function deparent(f: Forest, target: NodeId) {
 
 function removeNodeAndChildren(f: Forest, target: NodeId): TNode[] {
     const tree = findTreeWithNode(f, target);
+    const isRoot = tree.nodes.get(target)?.parent === undefined
     const toDelete = [target, ...collectChildIds(tree, target)];
     const fragment = toDelete.map((f) => tree.nodes.get(f)!);
     toDelete.map((d) => tree.nodes.delete(d));
+    if (isRoot) f.trees = f.trees.filter((m) => m !== tree);
     return fragment;
 }
 

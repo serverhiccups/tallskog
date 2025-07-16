@@ -88,7 +88,7 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 				class={styles.overlayinput}
 				value={text}
 				style={`width: ${width}px;
-				${browserType == "firefoxmac" ? "padding-top: 0.5rem;" : ""}`}
+				${browserType == "firefoxmac" ? "padding-top: 7px;" : ""}`}
 				onInput={handleOverlayInput}
 				ref={inputRef}
 				{...rest}

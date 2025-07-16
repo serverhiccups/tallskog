@@ -23,7 +23,7 @@ export class Tokeniser {
 		}
 	}
 
-	public next(pattern: RegExp): string | null {
+	public next(pattern: RegExp, captureGroup: number = 0): string | null {
 		if (this.remainingInput() == "") return null;
 
 		this.skipWhitespace();
@@ -32,8 +32,7 @@ export class Tokeniser {
 		if (match == null) return null;
 
 		this.cursor += match[0].length;
-		if (match[1]) return match[1];
-		return match[0];
+		return match[captureGroup];
 	}
 
 	public has(pattern: RegExp): boolean {
