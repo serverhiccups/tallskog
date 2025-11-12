@@ -4,7 +4,7 @@ import { Forest, NodeId, TreeInsertionPosition } from "../tree/forest";
 
 export interface Layout {
 	trees: LayoutTree[];
-	// arrows: ??
+	arrows: LayoutArrow[];
 }
 
 export interface LayoutTree {
@@ -14,6 +14,14 @@ export interface LayoutTree {
 	entryY: number;
 	root: LayoutNode;
 	query: LayoutNodeQueryStructure;
+}
+
+export interface LayoutArrow {
+	startX: number;
+	startY: number;
+	endX: number;
+	endY: number;
+	label: string;
 }
 
 export interface LayoutAlgorithm {

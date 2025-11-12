@@ -10,21 +10,26 @@ import {
 	LayoutNode,
 	buildLayoutNodeQueryStructure,
 	Layout,
+	LayoutArrow,
 
 } from "./layout";
-import { Forest, getTreeRoot, NodeId, TNode, Tree } from "../tree/forest";
+import { Forest, getTreeRoot, NodeId, TArrow, TNode, Tree } from "../tree/forest";
 
 export class NaiveLayout implements LayoutAlgorithm {
 	layoutForest(ctx: RenderingContext2D, forest: Forest, stubId: string | undefined, highlighted: string[]): Layout {
+		// Layout indidual trees
 		let trees = forest.trees.map((t) => this.layoutTree(ctx, t, stubId, highlighted));
+		// Put the trees next to each other
 		let edge = 36.0;
 		trees = trees.map((t) => {
 			const v = { ...t, entryX: edge + t.width / 2.0, entryY: TRACK_HEIGHT };
 			edge += t.width + 36.0;
 			return v;
 		});
+		// Calculate arrow positions
 		return {
-			trees
+			trees,
+			arrows: this.layoutArrows(ctx, trees, forest.arrows)
 		}
 	}
 	layoutTree(
@@ -55,6 +60,25 @@ export class NaiveLayout implements LayoutAlgorithm {
 			root: lt,
 			query: buildLayoutNodeQueryStructure(lt),
 		};
+	}
+	layoutArrows(ctx: RenderingContext2D, trees: LayoutTree[], arrows: TArrow[]): LayoutArrow[] {
+		return arrows.map((a) => {
+			const startLayoutNode = trees.flatMap((t) => t.query.nodes).find((n) => n.nodeId === a.start);
+			const endLayoutNode = trees.flatMap((t) => t.query.nodes).find((n) => n.nodeId === a.end);
+			if (startLayoutNode === undefined || endLayoutNode == undefined) return;
+
+			const startLayoutNodeRoot = trees.find((t) => t.root.nodeId == startLayoutNode.rootNodeId);
+			const endLayoutNodeRoot = trees.find((t) => t.root.nodeId == endLayoutNode.rootNodeId);
+			if (startLayoutNodeRoot === undefined || endLayoutNodeRoot == undefined) return;
+
+			return {
+				startX: startLayoutNode.absoluteX + startLayoutNodeRoot.entryX,
+				startY: startLayoutNode.absoluteY + startLayoutNodeRoot.entryY,
+				endX: endLayoutNode.absoluteX + endLayoutNodeRoot.entryX,
+				endY: endLayoutNode.absoluteY + endLayoutNodeRoot.entryY,
+				label: ""
+			}
+		}).filter((x) => x !== undefined);
 	}
 }
 

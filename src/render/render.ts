@@ -1,4 +1,4 @@
-import { LayoutTree, LayoutNode } from "./layout";
+import { LayoutTree, LayoutNode, LayoutArrow } from "./layout";
 
 export const TRACK_HEIGHT: number = 72.0;
 export const CHILD_PADDING: number = 16.0;
@@ -8,10 +8,14 @@ export type RenderingContext2D =
 	| CanvasRenderingContext2D
 	| OffscreenCanvasRenderingContext2D;
 
-export const renderLayout = (ctx: CanvasRenderingContext2D, layout: LayoutTree) => {
+export const renderLayoutTree = (ctx: CanvasRenderingContext2D, layout: LayoutTree) => {
 	// Drawing
 	renderLayoutNode(ctx, layout.root, layout.entryX, layout.entryY);
 };
+
+export const renderLayoutArrow = (ctx: CanvasRenderingContext2D, arrow: LayoutArrow) => {
+	lineBetween(ctx, arrow.startX, arrow.startY, arrow.endX, arrow.endY);
+}
 
 const lineBetween = (
 	ctx: CanvasRenderingContext2D,
