@@ -31,7 +31,7 @@ const lineBetween = (
 	ctx.stroke();
 };
 
-type TextBounds = { width: number; height: number; };
+export type TextBounds = { width: number; height: number; };
 
 const textBoundsMemo = new Map<string, TextBounds>();
 
