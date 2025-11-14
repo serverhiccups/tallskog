@@ -9,10 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "d3-flextree": "^2.1.2",
     "preact": "^10.26.6"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.10.1",
+    "@types/d3-flextree": "^2.1.4",
     "sass": "^1.87.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.5"

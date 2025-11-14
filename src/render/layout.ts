@@ -39,14 +39,6 @@ export interface LayoutNode {
 	nodeId: NodeId;
 	rootNodeId: NodeId;
 	parent: LayoutNode | undefined;
-	/**
-	 * x is the horizontal offset, relative to its parent
-	 */
-	x: number;
-	/**
-	 * y is the horizontal offset, relative to its parent
-	 */
-	y: number;
 	absoluteX: number;
 	absoluteY: number;
 	width: number;

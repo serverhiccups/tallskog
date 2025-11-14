@@ -31,10 +31,8 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 }) => {
 	const handleFocusChange = (e: FocusEvent) => {
 		if (e.target == document.activeElement) {
-			console.log("focusing");
 			onFocusUpdate(true);
 		} else {
-			console.log("defocusing");
 			onFocusUpdate(false);
 		}
 	};
@@ -48,9 +46,7 @@ export const InputOverlay: FunctionalComponent<InputOverlayProps> = ({
 		}
 
 		return () => {
-			console.log("deeffecting");
 			if (inputRef.current !== null) {
-				console.log("removed listeners");
 				inputRef.current.removeEventListener("focus", handleFocusChange);
 				inputRef.current.removeEventListener("blur", handleFocusChange);
 			}

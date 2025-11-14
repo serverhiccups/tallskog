@@ -102,8 +102,6 @@ const layout = (
 		nodeId: current.id,
 		rootNodeId: rootTreeNodeId,
 		parent: parent,
-		x: x,
-		y: y,
 		absoluteX: parentAbX,
 		absoluteY: parentAbY,
 		width: labelMetrics.width,

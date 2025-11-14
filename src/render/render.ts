@@ -56,9 +56,11 @@ export const setCanvasProperties = (ctx: RenderingContext2D): void => {
 const renderLayoutNode = (
 	ctx: CanvasRenderingContext2D,
 	root: LayoutNode,
-	x: number,
-	y: number
+	rootX: number,
+	rootY: number
 ): void => {
+	const x = root.absoluteX + rootX;
+	const y = root.absoluteY + rootY;
 	if (root.highlighted) {
 		ctx.fillStyle = "rgb(0 0 0 / 0.15)";
 		ctx.beginPath();
@@ -74,7 +76,7 @@ const renderLayoutNode = (
 	ctx.fillStyle = "black";
 	ctx.fillText(root.label, x, y);
 	for (let child of root.children) {
-		lineBetween(ctx, x, y + 8.0, x + child.x, y + child.y - 24.0);
-		renderLayoutNode(ctx, child, x + child.x, y + child.y);
+		lineBetween(ctx, x, y + 8.0, rootX + child.absoluteX, rootY + child.absoluteY - 24.0);
+		renderLayoutNode(ctx, child, rootX, rootY);
 	}
 };

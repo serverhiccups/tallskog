@@ -10,7 +10,6 @@ import {
 	useLayoutNodeHandle,
 	Layout,
 } from "../render/layout";
-import { NaiveLayout } from "../render/naiveLayout";
 import {
 	renderLayoutArrow,
 	renderLayoutTree,
@@ -21,7 +20,8 @@ import { InputOverlay } from "./InputOverlay";
 import styles from "./diagram.module.scss";
 import { useDndState } from "./dndState";
 import { Forest, NodeId } from "../tree/forest";
-import { CompactLayout } from "../render/compactLayout";
+import { FlexTreeLayout } from "../render/flextreeLayout";
+import { NaiveLayout } from "../render/naiveLayout";
 
 interface DiagramProps {
 	forest: Forest;
@@ -44,7 +44,7 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 
 	const [currentlyDragging, dropTargetId, dndActions] = useDndState();
 
-	const algo: LayoutAlgorithm = new CompactLayout();
+	const algo: LayoutAlgorithm = new FlexTreeLayout();
 
 	const layout: Layout = useMemo(() => {
 		if (forest === undefined) return { trees: [], arrows: [] };
@@ -68,8 +68,8 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		return {
 			width: currentlyDragging.width,
 			height: currentlyDragging.height,
-			entryX: mousePosition.x,
-			entryY: mousePosition.y + 10.0,
+			entryX: mousePosition.x - currentlyDragging.absoluteX,
+			entryY: mousePosition.y - currentlyDragging.absoluteY,
 			root: currentlyDragging,
 			query: buildLayoutNodeQueryStructure(currentlyDragging),
 		};
@@ -79,12 +79,11 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 		if (!layout) return;
 		// Show tracks
 		// ctx.fillStyle = "#333";
-		// for (let i = TRACK_HEIGHT; i < height; i += TRACK_HEIGHT) {
-		//     ctx.fillRect(0, i, width, 1.0);
+		// for (let i = TRACK_HEIGHT; i < 500; i += TRACK_HEIGHT) {
+		// 	ctx.fillRect(0, i, 1_000, 1.0);
 		// }
 		// Set up canvas
 		setCanvasProperties(ctx);
-		// debugger;
 		for (const la of layout.trees) {
 			renderLayoutTree(ctx, la);
 		}
@@ -179,7 +178,6 @@ export const Diagram: FunctionalComponent<DiagramProps> = ({
 
 	const onKeyDown = (e: KeyboardEvent) => {
 		if (e.code === "Backspace" && selectedLayoutNode !== undefined) {
-			// debugger;
 			if (overlayFocused && selectedLayoutNode.label !== "") return;
 			dispatch({ kind: "deleteNode", nodeId: selectedLayoutNode.nodeId });
 		} else if (e.code == "Escape") {
