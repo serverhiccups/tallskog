@@ -20,7 +20,6 @@ yarn dev
 
 ## To-do
 
-- [ ] Improve Layout query efficiency
 - [ ] Keyboard shortcuts
 - [ ] Features, (ie. [+uD], [+topic], etc)
 - [ ] template system
@@ -49,6 +48,7 @@ yarn dev
     - [ ] Documentation page
     - [ ] In-editor hints
 - [ ] Import from Treeform
+- [ ] Improve Layout query efficiency
 		
 
 ## Licence

@@ -88,7 +88,7 @@ export const getLayoutNodeAt = (
 		const localX = x - l.entryX;
 		const localY = y - l.entryY;
 
-		if (localX < -l.width / 2.0 || localX > l.width / 2.0) continue;
+		if (localX < -l.width || localX > l.width) continue;
 		for (const node of l.query.nodes) {
 			if (
 				isPointInsideLayoutNode(

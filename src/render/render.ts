@@ -61,7 +61,12 @@ const renderLayoutNode = (
 ): void => {
 	const x = root.absoluteX + rootX;
 	const y = root.absoluteY + rootY;
-	if (root.highlighted) {
+	if (root.nodeId.startsWith("filler-")) {
+		ctx.fillStyle = "red";
+		ctx.fillRect(x - (root.width / 2.0), y - (root.height / 2.0), root.width, root.height);
+		ctx.fillStyle = "blue";
+		ctx.fillRect(x, y, 1.0, 1.0);
+	} else if (root.highlighted) {
 		ctx.fillStyle = "rgb(0 0 0 / 0.15)";
 		ctx.beginPath();
 		ctx.roundRect(
@@ -76,7 +81,9 @@ const renderLayoutNode = (
 	ctx.fillStyle = "black";
 	ctx.fillText(root.label, x, y);
 	for (let child of root.children) {
+		// if (!child.nodeId.startsWith("filler-")) {
 		lineBetween(ctx, x, y + 8.0, rootX + child.absoluteX, rootY + child.absoluteY - 24.0);
+		// }
 		renderLayoutNode(ctx, child, rootX, rootY);
 	}
 };

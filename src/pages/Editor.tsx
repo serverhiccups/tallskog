@@ -7,11 +7,12 @@ import { Toolbar } from "../ui/Toolbar";
 import { makeUndoable } from "../tree/undo";
 
 export const Editor = () => {
-	const startingText = `["Hello" [1 "A" ["C"]["D"]]["B"]]
-	["Tree" ["Number"][2 "2"]]
-	<1 2>`;
+	// 	const startingText = `["Hello" [1 "A" ["C"]["D"]]["B"]]
+	// ["Tree" ["Number"][2 "2"]]
+	// <1 2>`;
 	// const startingText = `["Tree" ["Number"][2 "2" ["test"]]]`;
 	// const startingText = `["Tree"]`;
+	const startingText = `["TP" ["DP_1" ["Amber"]]["T'" ["T"]["vP" ["<DP_1>"]["v'"]]]]`;
 
 	const [state, dispatch] = useReducer(makeUndoable(dynamicForestReducer), {
 		past: [],

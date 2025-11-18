@@ -55,9 +55,24 @@ export function getSiblings(t: Tree, target: NodeId): NodeId[] {
 	return parent.children;
 }
 
+/**
+ * Child inclusive, Ancestor Inclusive
+ */
+function pathToAncestor(t: Tree, child: NodeId, ancestor: NodeId): NodeId[] | undefined {
+	let current = t.nodes.get(child);
+	if (current === undefined) return undefined;
+	let nodes: NodeId[] = [];
+	while (current !== undefined) {
+		nodes.push(current.id);
+		if (current?.id == ancestor) break;
+		current = current.parent === undefined ? undefined : t.nodes.get(current.parent)
+	}
+	return nodes;
+}
+
 // Arrows
 
-export type TArrow = {
+export interface TArrow {
 	label: string;
 	start: NodeId;
 	end: NodeId;
@@ -94,6 +109,36 @@ export function findNode(f: Forest, target: NodeId): TNode | undefined {
 	};
 	return undefined;
 }
+
+export function isMarkerLeftOfNode(f: Forest, node: NodeId, marker: NodeId): boolean {
+	debugger;
+	const nodeTree = findTreeWithNode(f, node);
+	const markerTree = findTreeWithNode(f, marker);
+	if (getTreeRoot(nodeTree).id !== getTreeRoot(markerTree).id) { // Compare order of trees
+		const nti = f.trees.findIndex((l) => l === nodeTree);
+		const mti = f.trees.findIndex((l) => l === markerTree);
+		return nti > mti;
+	}
+	const nodePathToRoot = pathToAncestor(nodeTree, node, getTreeRoot(nodeTree).id);
+	const markerPathToRoot = pathToAncestor(nodeTree, marker, getTreeRoot(nodeTree).id);
+	if (nodePathToRoot === undefined || markerPathToRoot === undefined) throw new Error("could not find root of tree");
+	for (let i = 0; i < Math.min(nodePathToRoot.length, markerPathToRoot.length); i++) {
+		const a = nodePathToRoot[nodePathToRoot.length - i];
+		const b = markerPathToRoot[markerPathToRoot.length - i];
+		if (a !== b) { // Divergence
+			const sharedAncestorId = nodePathToRoot[(nodePathToRoot.length - i) + 1];
+			const sharedAncestor = nodeTree.nodes.get(sharedAncestorId);
+			if (sharedAncestor === undefined) throw new Error("Could not find ancestor");
+			const aIndex = sharedAncestor.children.findIndex((k) => k === a);
+			const bIndex = sharedAncestor.children.findIndex((k) => k === b);
+			if (aIndex === -1 || bIndex === -1) throw new Error("could not refind child");
+			return aIndex > bIndex;
+		}
+	}
+	throw "unreachable";
+}
+
+// Forest updates/modification
 
 export function updateNodeLabel(f: Forest, target: NodeId, label: string): Forest {
 	if (!hasNode(f, target)) return f;
