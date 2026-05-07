@@ -66,10 +66,10 @@ const renderLayoutNode = (
 	const x = root.absoluteX + rootX;
 	const y = root.absoluteY + rootY;
 	if (root.nodeId.startsWith("filler-")) {
-		ctx.fillStyle = "red";
-		ctx.fillRect(x - (root.width / 2.0), y - (root.height / 2.0), root.width, root.height);
-		ctx.fillStyle = "blue";
-		ctx.fillRect(x, y, 1.0, 1.0);
+		// ctx.fillStyle = "red";
+		// ctx.fillRect(x - (root.width / 2.0), y - (root.height / 2.0), root.width, root.height);
+		// ctx.fillStyle = "blue";
+		// ctx.fillRect(x, y, 1.0, 1.0);
 	} else if (root.highlighted) {
 		ctx.fillStyle = "rgb(0 0 0 / 0.15)";
 		ctx.beginPath();

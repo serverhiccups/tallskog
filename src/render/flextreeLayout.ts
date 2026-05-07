@@ -1,8 +1,8 @@
 import { flextree, FlextreeNode } from "d3-flextree"
 import { calculateTextBounds, RenderingContext2D, TRACK_HEIGHT } from "./render"
 import { findNode, Forest, getTreeRoot, isMarkerLeftOfNode, makeTNode, NodeId, TArrow, TNode, Tree, TreeInsertionPosition } from "../tree/forest"
-import { buildLayoutNodeQueryStructure, Layout, LayoutAlgorithm, LayoutArrow, LayoutNode, LayoutTree } from "./layout";
-import { pointsToPath } from "./catmullRom";
+import { buildLayoutNodeQueryStructure, ControlPoint, Layout, LayoutAlgorithm, LayoutArrow, LayoutNode, LayoutTree } from "./layout";
+import { interpolatePoints } from "./catmullRom";
 
 interface ArrowFiller {
 	arrowId: string;
@@ -168,6 +168,25 @@ export class FlexTreeLayout implements LayoutAlgorithm {
 			// Find fillers for this arrow
 			const fillers = trees.flatMap((t) => t.query.nodes).filter((n) => arrowFillerMap.get(a.id)?.includes(n.nodeId));
 			if (fillers.length !== 2) throw new Error("arrow did not have exactly two fillers");
+			let leftFiller, rightFiller;
+			if (fillers[0].absoluteX < fillers[1].absoluteX) {
+				leftFiller = fillers[0];
+				rightFiller = fillers[1];
+			} else {
+				leftFiller = fillers[1];
+				rightFiller = fillers[0];
+			}
+
+			const leftFillerRoot = trees.find((t) => t.root.nodeId == leftFiller.rootNodeId)!;
+			const rightFillerRoot = trees.find((t) => t.root.nodeId == rightFiller.rootNodeId)!;
+			const leftFillerPosition: ControlPoint = {
+				x: leftFiller.absoluteX + leftFillerRoot.entryX,
+				y: leftFiller.absoluteY + leftFillerRoot.entryY
+			}
+			const rightFillerPosition = {
+				x: rightFiller.absoluteX + rightFillerRoot.entryX,
+				y: rightFiller.absoluteY + rightFillerRoot.entryY
+			}
 
 			// Box boundaries
 			const obstacles = startLayoutNodeRoot.query.nodes
@@ -175,44 +194,46 @@ export class FlexTreeLayout implements LayoutAlgorithm {
 					const pos = n.absoluteY + startLayoutNodeRoot.entryY;
 					return pos >= Math.min(startLayoutNode.absoluteY + startLayoutNodeRoot.entryY, endLayoutNode.absoluteY + startLayoutNodeRoot.entryY)
 				})
-			// .filter((n) => {
-			// 	const pos = n.absoluteX + startLayoutNodeRoot.entryX;
-			// 	return pos >= leftNodeX && pos <= rightNodeX;
-			// });
+				.filter((n) => {
+					const pos = n.absoluteX + startLayoutNodeRoot.entryX;
+					return pos >= leftFillerPosition.x && pos <= rightFillerPosition.x;
+				});
 			const lowestPoint = obstacles.reduce((max, current) =>
 				current.absoluteY > max.absoluteY ? current : max
 			);
+			const lowestPointY = lowestPoint.absoluteY + trees.find((t) => t.root.nodeId === lowestPoint.rootNodeId)!.entryY + 10;
 
-			const points = pointsToPath(
+			// const points = ([
+			const points = interpolatePoints([
 				{
 					x: startLayoutNode.absoluteX + startLayoutNodeRoot.entryX,
 					y: startLayoutNode.absoluteY + startLayoutNodeRoot.entryY + 10,
 				},
 				{
-					// x: startLayoutNode.absoluteX + startLayoutNodeRoot.entryX,
-					// y: startLayoutNode.absoluteY + startLayoutNodeRoot.entryY + 250,
-					x: startLayoutNode.absoluteX + startLayoutNodeRoot.entryX,
-					y: lowestPoint.absoluteY + startLayoutNodeRoot.entryY,
+					x: leftFillerPosition.x,
+					y: leftFillerPosition.y
 				},
 				{
-					// x: endLayoutNode.absoluteX + endLayoutNodeRoot.entryX,
-					// y: endLayoutNode.absoluteY + endLayoutNodeRoot.entryY + 250,
-					x: endLayoutNode.absoluteX + endLayoutNodeRoot.entryX,
-					y: lowestPoint.absoluteY + endLayoutNodeRoot.entryY,
+					x: leftFillerPosition.x,
+					y: lowestPointY,
+				},
+				{
+					x: rightFillerPosition.x,
+					y: lowestPointY
+				},
+				{
+					x: rightFillerPosition.x,
+					y: rightFillerPosition.y
 				},
 				{
 					x: endLayoutNode.absoluteX + endLayoutNodeRoot.entryX,
 					y: endLayoutNode.absoluteY + endLayoutNodeRoot.entryY + 10,
 				}
-			);
+			]);
 			return {
 				controlPoints: points,
 				label: ""
 			}
 		}).filter((x) => x !== undefined);
-	}
-
-	private doesIntersect(obstacles: Set<LayoutNode>, ray: any): boolean {
-		return false;
 	}
 }

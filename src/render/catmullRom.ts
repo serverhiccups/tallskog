@@ -2,8 +2,8 @@ import { ControlPoint } from "./layout";
 
 const SAMPLES_PER_SEGMENT = 10;
 
-export const pointsToPath = (p0: ControlPoint, p1: ControlPoint, p2: ControlPoint, p3: ControlPoint): ControlPoint[] => {
-	const controlPoints = [p0, p1, p2, p3]; // Maybe duplicate end and start points?
+export const interpolatePoints = (controlPoints: ControlPoint[]): ControlPoint[] => {
+	// const controlPoints = [p0, p1, p2, p3]; // Maybe duplicate end and start points?
 	const curvePoints: ControlPoint[] = [];
 	for (let i = 0; i < controlPoints.length - 1; i++) {
 		const z0 = controlPoints[Math.max(i - 1, 0)]
