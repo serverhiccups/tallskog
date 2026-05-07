@@ -74,6 +74,7 @@ function pathToAncestor(t: Tree, child: NodeId, ancestor: NodeId): NodeId[] | un
 
 export interface TArrow {
 	label: string;
+	id: string;
 	start: NodeId;
 	end: NodeId;
 }
@@ -111,7 +112,6 @@ export function findNode(f: Forest, target: NodeId): TNode | undefined {
 }
 
 export function isMarkerLeftOfNode(f: Forest, node: NodeId, marker: NodeId): boolean {
-	debugger;
 	const nodeTree = findTreeWithNode(f, node);
 	const markerTree = findTreeWithNode(f, marker);
 	if (getTreeRoot(nodeTree).id !== getTreeRoot(markerTree).id) { // Compare order of trees
@@ -119,24 +119,33 @@ export function isMarkerLeftOfNode(f: Forest, node: NodeId, marker: NodeId): boo
 		const mti = f.trees.findIndex((l) => l === markerTree);
 		return nti > mti;
 	}
-	const nodePathToRoot = pathToAncestor(nodeTree, node, getTreeRoot(nodeTree).id);
-	const markerPathToRoot = pathToAncestor(nodeTree, marker, getTreeRoot(nodeTree).id);
+	const nodePathToRoot = pathToAncestor(nodeTree, node, getTreeRoot(nodeTree).id)?.reverse();
+	const markerPathToRoot = pathToAncestor(nodeTree, marker, getTreeRoot(nodeTree).id)?.reverse();
 	if (nodePathToRoot === undefined || markerPathToRoot === undefined) throw new Error("could not find root of tree");
-	for (let i = 0; i < Math.min(nodePathToRoot.length, markerPathToRoot.length); i++) {
-		const a = nodePathToRoot[nodePathToRoot.length - i];
-		const b = markerPathToRoot[markerPathToRoot.length - i];
-		if (a !== b) { // Divergence
-			const sharedAncestorId = nodePathToRoot[(nodePathToRoot.length - i) + 1];
-			const sharedAncestor = nodeTree.nodes.get(sharedAncestorId);
-			if (sharedAncestor === undefined) throw new Error("Could not find ancestor");
-			const aIndex = sharedAncestor.children.findIndex((k) => k === a);
-			const bIndex = sharedAncestor.children.findIndex((k) => k === b);
-			if (aIndex === -1 || bIndex === -1) throw new Error("could not refind child");
-			return aIndex > bIndex;
-		}
-	}
-	throw "unreachable";
+
+	// Start at i = 1 because the first item is the root which must be shared
+	let i = 0;
+	while (i < Math.min(nodePathToRoot.length, markerPathToRoot.length) && nodePathToRoot[i] == markerPathToRoot[i]) i++;
+
+	// same node
+	if (i == nodePathToRoot.length && i == markerPathToRoot.length) return false;
+
+	// one node is the ancestor of the other
+	if (i == markerPathToRoot.length) return true;
+	if (i == nodePathToRoot.length) return false;
+
+	const sharedAncestor = findNode(f, markerPathToRoot[i - 1]);
+	if (sharedAncestor === undefined) throw new Error("could not find ancestor in forest");
+	const childMarker = markerPathToRoot[i];
+	const childNode = nodePathToRoot[i];
+
+	const markerIndex = sharedAncestor.children.findIndex((n) => n == childMarker);
+	const nodeIndex = sharedAncestor.children.findIndex((n) => n == childNode);
+
+	return markerIndex < nodeIndex;
+
 }
+
 
 // Forest updates/modification
 

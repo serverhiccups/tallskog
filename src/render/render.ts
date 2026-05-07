@@ -14,7 +14,11 @@ export const renderLayoutTree = (ctx: CanvasRenderingContext2D, layout: LayoutTr
 };
 
 export const renderLayoutArrow = (ctx: CanvasRenderingContext2D, arrow: LayoutArrow) => {
-	lineBetween(ctx, arrow.startX, arrow.startY, arrow.endX, arrow.endY);
+	for (let i = 0; i < arrow.controlPoints.length - 1; i++) {
+		const p1 = arrow.controlPoints[i];
+		const p2 = arrow.controlPoints[i + 1];
+		lineBetween(ctx, p1.x, p1.y, p2.x, p2.y);
+	}
 }
 
 const lineBetween = (
@@ -81,9 +85,9 @@ const renderLayoutNode = (
 	ctx.fillStyle = "black";
 	ctx.fillText(root.label, x, y);
 	for (let child of root.children) {
-		// if (!child.nodeId.startsWith("filler-")) {
-		lineBetween(ctx, x, y + 8.0, rootX + child.absoluteX, rootY + child.absoluteY - 24.0);
-		// }
+		if (!child.nodeId.startsWith("filler-")) {
+			lineBetween(ctx, x, y + 8.0, rootX + child.absoluteX, rootY + child.absoluteY - 24.0);
+		}
 		renderLayoutNode(ctx, child, rootX, rootY);
 	}
 };

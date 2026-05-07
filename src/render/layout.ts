@@ -17,11 +17,20 @@ export interface LayoutTree {
 }
 
 export interface LayoutArrow {
-	startX: number;
-	startY: number;
-	endX: number;
-	endY: number;
+	controlPoints: ControlPoint[]
 	label: string;
+}
+
+export interface ControlPoint {
+	x: number;
+	y: number;
+}
+
+interface Rect {
+	x: number;
+	y: number;
+	w: number;
+	h: number;
 }
 
 export interface LayoutAlgorithm {
@@ -39,6 +48,7 @@ export interface LayoutNode {
 	nodeId: NodeId;
 	rootNodeId: NodeId;
 	parent: LayoutNode | undefined;
+	/* X is the baseline and Y is the centre */
 	absoluteX: number;
 	absoluteY: number;
 	width: number;
@@ -63,6 +73,15 @@ export const buildLayoutNodeQueryStructure = (
 	};
 };
 
+const layoutNodetoRectBounds = (node: LayoutNode): Rect => {
+	return {
+		x: node.absoluteX - (node.width / 2.0) - (LABEL_PADDING / 2.0),
+		y: node.absoluteY - node.height - (LABEL_PADDING / 2.0),
+		w: node.width + LABEL_PADDING,
+		h: node.height + LABEL_PADDING,
+	}
+}
+
 const isPointInsideLayoutNode = (
 	node: LayoutNode,
 	x: number,
@@ -76,6 +95,41 @@ const isPointInsideLayoutNode = (
 		x < node.width / 2.0 + LABEL_PADDING / 2.0
 	);
 };
+
+const doLinesCollide = (line1Start: ControlPoint, line1End: ControlPoint, line2Start: ControlPoint, line2End: ControlPoint): boolean => {
+	/* Adapted from https://jeffreythompson.org/collision-detection/line-rect.php */
+	const x1 = line1Start.x;
+	const y1 = line1Start.y;
+	const x2 = line1End.x;
+	const y2 = line1End.y;
+	const x3 = line2Start.x;
+	const y3 = line2Start.y;
+	const x4 = line2End.x;
+	const y4 = line2End.y;
+
+	const denominator = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+
+	// Parallel lines (including collinear) → treat as not colliding
+	if (denominator === 0) return false;
+
+	const uA =
+		((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
+
+	const uB =
+		((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
+
+	// Lines collide if intersection is within both segments
+	return uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1;
+}
+
+export const doesLineCollideWithRect = (rect: Rect, cp1: ControlPoint, cp2: ControlPoint): boolean => {
+	return (
+		doLinesCollide(cp1, cp2, { x: rect.x, y: rect.y }, { x: rect.x, y: rect.y + rect.h }) ||
+		doLinesCollide(cp1, cp2, { x: rect.x, y: rect.y }, { x: rect.x + rect.w, y: rect.y }) ||
+		doLinesCollide(cp1, cp2, { x: rect.x, y: rect.y }, { x: rect.x + rect.w, y: rect.y + rect.h }) ||
+		doLinesCollide(cp1, cp2, { x: rect.x, y: rect.y }, { x: rect.x, y: rect.y + rect.h })
+	)
+}
 
 export const getLayoutNodeAt = (
 	layout: Layout,

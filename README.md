@@ -20,35 +20,43 @@ yarn dev
 
 ## To-do
 
-- [ ] Keyboard shortcuts
-- [ ] Features, (ie. [+uD], [+topic], etc)
-- [ ] template system
-- [ ] copy and paste
+### Core Diagram Functionality
 - [ ] New automatic layout system
     - [X] Bring in flextree
-    - [ ] Investigate how arrows are typically used
-    - [ ] Add arrow layout into the FlexTreeLayout
+    - [X] Investigate how arrows are typically used
+    - [X] Add arrow layout into the FlexTreeLayout
+    - [ ] Figure out what to do when the target of an arrow has a direct child
+    - [ ] Permit drawing of arrows between trees
+    - [ ] Tighten the fit of arrows around obstacles
     - [ ] Draw labels in the correct place on arrows
 - [ ] Allow arrows to be added with the mouse
 - [ ] Allow labels to be added to arrows
-- [ ] Saving and loading
+- [ ] Allow canvas to be scrolled
+- [ ] Features, (ie. [+uD], [+topic], etc)
 - [ ] Add option for a triangle link to a single child (eg. for omitting the internal structure of a DP)
 - [ ] Ability to change diagram font
+### UI Functionality
+- [ ] Keyboard shortcuts
+- [ ] Saving and loading
+- [ ] template system
+- [ ] copy and paste
 - [ ] Standalone commandline tool
-- [ ] Homepage / Landing splash
 - [ ] Image export
     - [ ] SVG export
     - [ ] PNG export
+- [ ] Check touch screen support (iPad)
+- [ ] Import from Treeform
+### Branding
+- [ ] Homepage / Landing splash
 - [ ] Branding
 - [ ] Support for embedding into Typst / LaTeX
-- [ ] Automatic local backups (to help prevent issues with any accidental loss / corruption)
-- [ ] Check cross-browser compatibility
-- [ ] Check touch screen support (iPad)
 - [ ] Help / Documentation
     - [ ] Documentation page
     - [ ] In-editor hints
-- [ ] Import from Treeform
+### Other
 - [ ] Improve Layout query efficiency
+- [ ] Check cross-browser compatibility
+- [ ] Automatic local backups (to help prevent issues with any accidental loss / corruption)
 		
 
 ## Licence

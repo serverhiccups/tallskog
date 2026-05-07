@@ -1,0 +1,10 @@
+Arrow Algorithm Steps
+* Four control points - start the first and last and the beginning and end nodes
+* Find the lowest point in the set of obstacles between the two nodes
+* The two middle controls points will slide along the x-axis of this baseline
+* ? ?The two middle points start on top of each other at this point
+* Draw a ray between the starting point and the baseline at a 90deg (vertical) angle
+* If this ray does not intersect with any obstacles, attempt to move the ray in a little (with angle) and try the test again
+* Until you have the ray as a tight as possible
+* Do the same on the other side.
+* The two middle control points lie on the intersect of the two rays and the baseline

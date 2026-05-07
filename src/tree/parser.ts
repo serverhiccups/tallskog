@@ -37,8 +37,14 @@ export const parse = (text: string): Forest => {
 		const endNode = parseInt(require(tokeniser, PATTERNS.NODE_NUMBER));
 
 		if (!targetIds.has(startNode) || !targetIds.has(endNode)) throw new Error("Parser error, arrow points to undefined node");
-		//@ts-ignore
-		forest.arrows.push({ start: targetIds.get(startNode), end: targetIds.get(endNode), label: "" });
+		forest.arrows.push({
+			//@ts-ignore
+			start: targetIds.get(startNode),
+			//@ts-ignore
+			end: targetIds.get(endNode),
+			id: crypto.randomUUID(),
+			label: ""
+		});
 
 		expect(tokeniser, PATTERNS.CLOSE_ANGLE);
 	}

@@ -72,10 +72,16 @@ export class NaiveLayout implements LayoutAlgorithm {
 			if (startLayoutNodeRoot === undefined || endLayoutNodeRoot == undefined) return;
 
 			return {
-				startX: startLayoutNode.absoluteX + startLayoutNodeRoot.entryX,
-				startY: startLayoutNode.absoluteY + startLayoutNodeRoot.entryY,
-				endX: endLayoutNode.absoluteX + endLayoutNodeRoot.entryX,
-				endY: endLayoutNode.absoluteY + endLayoutNodeRoot.entryY,
+				controlPoints: [
+					{
+						x: startLayoutNode.absoluteX + startLayoutNodeRoot.entryX,
+						y: startLayoutNode.absoluteY + startLayoutNodeRoot.entryY
+					},
+					{
+						x: endLayoutNode.absoluteX + endLayoutNodeRoot.entryX,
+						y: endLayoutNode.absoluteY + endLayoutNodeRoot.entryY
+					}
+				],
 				label: ""
 			}
 		}).filter((x) => x !== undefined);
