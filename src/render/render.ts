@@ -1,4 +1,4 @@
-import { LayoutTree, LayoutNode, LayoutArrow } from "./layout";
+import { LayoutTree, LayoutNode, LayoutArrow, ControlPoint } from "./layout";
 
 export const TRACK_HEIGHT: number = 72.0;
 export const CHILD_PADDING: number = 16.0;
@@ -14,14 +14,32 @@ export const renderLayoutTree = (ctx: CanvasRenderingContext2D, layout: LayoutTr
 };
 
 export const renderLayoutArrow = (ctx: CanvasRenderingContext2D, arrow: LayoutArrow) => {
-	for (let i = 0; i < arrow.controlPoints.length - 1; i++) {
-		const p1 = arrow.controlPoints[i];
-		const p2 = arrow.controlPoints[i + 1];
-		lineBetween(ctx, p1.x, p1.y, p2.x, p2.y);
-		// ctx.fillStyle = "#0f0"
-		// ctx.fillRect(p1.x, p1.y, 1, 1)
-		// ctx.fillStyle = "#000"
+	ctx.beginPath()
+	ctx.moveTo(arrow.controlPoints[0].x, arrow.controlPoints[0].y);
+	for (let i = 1; i < arrow.controlPoints.length; i++) {
+		ctx.lineTo(arrow.controlPoints[i].x, arrow.controlPoints[i].y);
 	}
+	ctx.stroke();
+	renderArrowHead(ctx, arrow.controlPoints[arrow.controlPoints.length - 2], arrow.controlPoints[arrow.controlPoints.length - 1]);
+}
+
+const renderArrowHead = (ctx: CanvasRenderingContext2D, penultimatePoint: ControlPoint, finalPoint: ControlPoint) => {
+
+	const arrowAngle = Math.atan2(penultimatePoint.y - finalPoint.y, penultimatePoint.x - finalPoint.x);
+	const leftAngle = arrowAngle - (Math.PI / 4.0)
+	const rightAngle = arrowAngle + (Math.PI / 4.0)
+
+	const leftPoint: ControlPoint = {
+		x: finalPoint.x + (16.0 * Math.cos(leftAngle)),
+		y: finalPoint.y + (16.0 * Math.sin(leftAngle))
+	}
+	const rightPoint: ControlPoint = {
+		x: finalPoint.x + (16.0 * Math.cos(rightAngle)),
+		y: finalPoint.y + (16.0 * Math.sin(rightAngle))
+	}
+
+	lineBetween(ctx, finalPoint.x, finalPoint.y, leftPoint.x, leftPoint.y);
+	lineBetween(ctx, finalPoint.x, finalPoint.y, rightPoint.x, rightPoint.y);
 }
 
 const lineBetween = (
@@ -34,7 +52,6 @@ const lineBetween = (
 	ctx.beginPath();
 	ctx.moveTo(x1, y1);
 	ctx.lineTo(x2, y2);
-	ctx.closePath();
 	ctx.stroke();
 };
 

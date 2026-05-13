@@ -214,27 +214,29 @@ export class FlexTreeLayout implements LayoutAlgorithm {
 				})
 
 			if (obstacles.length === 0) {
+				const points = interpolatePoints([
+					// controlPoints: ([
+					{
+						x: leftLayoutNode.absoluteX + leftLayoutNodeRoot.entryX,
+						y: leftLayoutNode.absoluteY + leftLayoutNodeRoot.entryY + 10,
+					},
+					{
+						x: leftFillerPosition.x,
+						y: leftFillerPosition.y
+					},
+					{
+						x: rightFillerPosition.x,
+						y: rightFillerPosition.y
+					},
+					{
+						x: rightLayoutNode.absoluteX + rightLayoutNodeRoot.entryX,
+						y: rightLayoutNode.absoluteY + rightLayoutNodeRoot.entryY + 10,
+					}
+				]);
+				if (rightLayoutNode.nodeId === a.start) points.reverse();
 				return {
-					label: "",
-					controlPoints: interpolatePoints([
-						// controlPoints: ([
-						{
-							x: leftLayoutNode.absoluteX + leftLayoutNodeRoot.entryX,
-							y: leftLayoutNode.absoluteY + leftLayoutNodeRoot.entryY + 10,
-						},
-						{
-							x: leftFillerPosition.x,
-							y: leftFillerPosition.y
-						},
-						{
-							x: rightFillerPosition.x,
-							y: rightFillerPosition.y
-						},
-						{
-							x: rightLayoutNode.absoluteX + rightLayoutNodeRoot.entryX,
-							y: rightLayoutNode.absoluteY + rightLayoutNodeRoot.entryY + 10,
-						}
-					])
+					controlPoints: points,
+					label: ""
 				}
 			}
 
@@ -270,6 +272,7 @@ export class FlexTreeLayout implements LayoutAlgorithm {
 					y: rightLayoutNode.absoluteY + rightLayoutNodeRoot.entryY + 10,
 				}
 			]);
+			if (rightLayoutNode.nodeId === a.start) points.reverse();
 			return {
 				controlPoints: points,
 				label: ""
