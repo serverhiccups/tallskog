@@ -18,7 +18,6 @@ export interface LayoutTree {
 
 export interface LayoutArrow {
 	controlPoints: ControlPoint[]
-	// arrowHeadAtStart: boolean;
 	label: string;
 }
 

@@ -2,7 +2,7 @@ import { flextree, FlextreeNode } from "d3-flextree"
 import { calculateTextBounds, RenderingContext2D, TRACK_HEIGHT } from "./render"
 import { findNode, Forest, getTreeRoot, isMarkerLeftOfNode, makeTNode, NodeId, TArrow, TNode, Tree, TreeInsertionPosition } from "../tree/forest"
 import { buildLayoutNodeQueryStructure, ControlPoint, Layout, LayoutAlgorithm, LayoutArrow, LayoutNode, LayoutTree } from "./layout";
-import { interpolatePoints } from "./catmullRom";
+import { interpolatePoints } from "./interpolation";
 
 interface ArrowFiller {
 	arrowId: string;
