@@ -153,6 +153,7 @@ export class FlexTreeLayout implements LayoutAlgorithm {
 
 	private layoutArrows(ctx: RenderingContext2D, trees: LayoutTree[], arrows: TArrow[], arrowFillerMap: Map<NodeId, NodeId[]>): LayoutArrow[] {
 		return arrows.map((a) => {
+			// Find Start and End nodes
 			const startLayoutNode = trees.flatMap((t) => t.query.nodes).find((n) => n.nodeId === a.start);
 			const endLayoutNode = trees.flatMap((t) => t.query.nodes).find((n) => n.nodeId === a.end);
 			if (startLayoutNode === undefined || endLayoutNode == undefined) return;
@@ -160,21 +161,33 @@ export class FlexTreeLayout implements LayoutAlgorithm {
 			const startLayoutNodeRoot = trees.find((t) => t.root.nodeId == startLayoutNode.rootNodeId);
 			const endLayoutNodeRoot = trees.find((t) => t.root.nodeId == endLayoutNode.rootNodeId);
 			if (startLayoutNodeRoot === undefined || endLayoutNodeRoot == undefined) return;
-			if (startLayoutNodeRoot !== endLayoutNodeRoot) return; // TODO: Layout arrows between different trees
 
-			// Get the nodes between the two nodes
-			const leftNodeX = Math.min(startLayoutNode.absoluteX + startLayoutNodeRoot.entryX, endLayoutNode.absoluteX + endLayoutNodeRoot.entryX);
-			const rightNodeX = Math.max(startLayoutNode.absoluteX + startLayoutNodeRoot.entryX, endLayoutNode.absoluteX + endLayoutNodeRoot.entryX);
+			// Find which one of those nodes is left and right
+			const leftLayoutNode = startLayoutNode.absoluteX + startLayoutNodeRoot.entryX < endLayoutNode.absoluteX + endLayoutNodeRoot.entryX ? startLayoutNode : endLayoutNode;
+			const rightLayoutNode = leftLayoutNode.nodeId === startLayoutNode.nodeId ? endLayoutNode : startLayoutNode;
+
+			const leftLayoutNodeRoot = trees.find((t) => t.root.nodeId == leftLayoutNode.rootNodeId);
+			const rightLayoutNodeRoot = trees.find((t) => t.root.nodeId == rightLayoutNode.rootNodeId);
+			if (leftLayoutNodeRoot === undefined || rightLayoutNodeRoot == undefined) return;
+
 			// Find fillers for this arrow
-			const fillers = trees.flatMap((t) => t.query.nodes).filter((n) => arrowFillerMap.get(a.id)?.includes(n.nodeId));
+			const fillers = trees
+				.flatMap((t) => t.query.nodes)
+				.filter((n) => arrowFillerMap.get(a.id)?.includes(n.nodeId))
+				.map((f) => {
+					return {
+						filler: f, layout: trees.find((t) => t.root.nodeId == f.rootNodeId)!
+					}
+				})
 			if (fillers.length !== 2) throw new Error("arrow did not have exactly two fillers");
 			let leftFiller, rightFiller;
-			if (fillers[0].absoluteX < fillers[1].absoluteX) {
-				leftFiller = fillers[0];
-				rightFiller = fillers[1];
+			// TODO: shouldn't this include the entryX too?
+			if (fillers[0].filler.absoluteX + fillers[0].layout.entryX < fillers[1].filler.absoluteX + fillers[1].layout.entryX) {
+				leftFiller = fillers[0].filler;
+				rightFiller = fillers[1].filler;
 			} else {
-				leftFiller = fillers[1];
-				rightFiller = fillers[0];
+				leftFiller = fillers[1].filler;
+				rightFiller = fillers[0].filler;
 			}
 
 			const leftFillerRoot = trees.find((t) => t.root.nodeId == leftFiller.rootNodeId)!;
@@ -189,15 +202,42 @@ export class FlexTreeLayout implements LayoutAlgorithm {
 			}
 
 			// Box boundaries
-			const obstacles = startLayoutNodeRoot.query.nodes
+			const obstacles = trees.flatMap((t) => t.query.nodes)
 				.filter((n) => {
 					const pos = n.absoluteY + startLayoutNodeRoot.entryY;
-					return pos >= Math.min(startLayoutNode.absoluteY + startLayoutNodeRoot.entryY, endLayoutNode.absoluteY + startLayoutNodeRoot.entryY)
+					return pos >= Math.min(startLayoutNode.absoluteY + startLayoutNodeRoot.entryY, endLayoutNode.absoluteY + endLayoutNodeRoot.entryY)
 				})
 				.filter((n) => {
-					const pos = n.absoluteX + startLayoutNodeRoot.entryX;
+					const nodeLayout = trees.find((t) => t.root.nodeId === n.rootNodeId)!; // eww
+					const pos = n.absoluteX + nodeLayout.entryX;
 					return pos >= leftFillerPosition.x && pos <= rightFillerPosition.x;
-				});
+				})
+
+			if (obstacles.length === 0) {
+				return {
+					label: "",
+					controlPoints: interpolatePoints([
+						// controlPoints: ([
+						{
+							x: leftLayoutNode.absoluteX + leftLayoutNodeRoot.entryX,
+							y: leftLayoutNode.absoluteY + leftLayoutNodeRoot.entryY + 10,
+						},
+						{
+							x: leftFillerPosition.x,
+							y: leftFillerPosition.y
+						},
+						{
+							x: rightFillerPosition.x,
+							y: rightFillerPosition.y
+						},
+						{
+							x: rightLayoutNode.absoluteX + rightLayoutNodeRoot.entryX,
+							y: rightLayoutNode.absoluteY + rightLayoutNodeRoot.entryY + 10,
+						}
+					])
+				}
+			}
+
 			const lowestPoint = obstacles.reduce((max, current) =>
 				current.absoluteY > max.absoluteY ? current : max
 			);
@@ -206,8 +246,8 @@ export class FlexTreeLayout implements LayoutAlgorithm {
 			// const points = ([
 			const points = interpolatePoints([
 				{
-					x: startLayoutNode.absoluteX + startLayoutNodeRoot.entryX,
-					y: startLayoutNode.absoluteY + startLayoutNodeRoot.entryY + 10,
+					x: leftLayoutNode.absoluteX + leftLayoutNodeRoot.entryX,
+					y: leftLayoutNode.absoluteY + leftLayoutNodeRoot.entryY + 10,
 				},
 				{
 					x: leftFillerPosition.x,
@@ -226,8 +266,8 @@ export class FlexTreeLayout implements LayoutAlgorithm {
 					y: rightFillerPosition.y
 				},
 				{
-					x: endLayoutNode.absoluteX + endLayoutNodeRoot.entryX,
-					y: endLayoutNode.absoluteY + endLayoutNodeRoot.entryY + 10,
+					x: rightLayoutNode.absoluteX + rightLayoutNodeRoot.entryX,
+					y: rightLayoutNode.absoluteY + rightLayoutNodeRoot.entryY + 10,
 				}
 			]);
 			return {

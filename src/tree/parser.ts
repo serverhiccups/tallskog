@@ -38,10 +38,8 @@ export const parse = (text: string): Forest => {
 
 		if (!targetIds.has(startNode) || !targetIds.has(endNode)) throw new Error("Parser error, arrow points to undefined node");
 		forest.arrows.push({
-			//@ts-ignore
-			start: targetIds.get(startNode),
-			//@ts-ignore
-			end: targetIds.get(endNode),
+			start: targetIds.get(startNode)!,
+			end: targetIds.get(endNode)!,
 			id: crypto.randomUUID(),
 			label: ""
 		});

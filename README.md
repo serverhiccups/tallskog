@@ -26,7 +26,8 @@ yarn dev
     - [X] Investigate how arrows are typically used
     - [X] Add arrow layout into the FlexTreeLayout
     - [X] Figure out what to do when the target of an arrow has a direct child
-    - [ ] Permit drawing of arrows between trees
+    - [X] Permit drawing of arrows between trees
+    - [ ] Draw arrow heads
     - [ ] Tighten the fit of arrows around obstacles
     - [ ] Draw labels in the correct place on arrows
 - [ ] Allow arrows to be added with the mouse

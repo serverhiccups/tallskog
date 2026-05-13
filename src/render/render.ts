@@ -18,6 +18,9 @@ export const renderLayoutArrow = (ctx: CanvasRenderingContext2D, arrow: LayoutAr
 		const p1 = arrow.controlPoints[i];
 		const p2 = arrow.controlPoints[i + 1];
 		lineBetween(ctx, p1.x, p1.y, p2.x, p2.y);
+		// ctx.fillStyle = "#0f0"
+		// ctx.fillRect(p1.x, p1.y, 1, 1)
+		// ctx.fillStyle = "#000"
 	}
 }
 
